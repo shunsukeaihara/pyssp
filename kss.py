@@ -5,7 +5,7 @@ import scipy as sp
 import math
 from util import read_signal, get_frame,separate_channels,add_signal,uniting_channles,write_signal
 from vad.ltsd import LTSD
-from voice_enhancement import SupectralSubtruction
+from voice_enhancement import SupectralSubtruction,MMSE_STSA
 
 WINSIZE=8192
 VADOFFSET = 1
@@ -67,8 +67,8 @@ class KaraokeFileLoader():
 def subtruction(ssignal,ksignal,window,winsize):
     nf = len(ssignal_l)/(winsize/2) - 1
     out=sp.zeros(len(ssignal),sp.float32)
-    ss = SupectralSubtruction(winsize,window)
-    #ss = MMSE_STSA(winsize,window)
+    #ss = SupectralSubtruction(winsize,window)
+    ss = MMSE_STSA(winsize,window)
     for no in xrange(nf):
         s = get_frame(ssignal, winsize, no)
         k = get_frame(ksignal, winsize, no)
@@ -122,33 +122,33 @@ if __name__ == "__main__":
     sig_out_l[sp.isnan(sig_out_l)]=0.0
     sig_out_r[sp.isnan(sig_out_r)]=0.0
 
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(321)
-    Pxx,freqs, bins, im = ax.specgram(ssignal_l[0:200*WINSIZE],
-                                   NFFT=WINSIZE, Fs=44100,
-                                   noverlap=WINSIZE/2, window=window)
-    ax2 = fig.add_subplot(323)
-    Pxx,freqs, bins, im = ax2.specgram(ksignal_l[0:200*WINSIZE],
-                                   NFFT=WINSIZE, Fs=44100,
-                                   noverlap=WINSIZE/2, window=window)
-    ax3 = fig.add_subplot(325)
-    Pxx,freqs, bins, im = ax3.specgram(sig_out_l[0:200*WINSIZE],
-                                   NFFT=WINSIZE, Fs=44100,
-                                   noverlap=WINSIZE/2, window=window)
-    ax4 = fig.add_subplot(322)
-    Pxx,freqs, bins, im = ax4.specgram(ssignal_r[0:200*WINSIZE],
-                                   NFFT=WINSIZE, Fs=44100,
-                                   noverlap=WINSIZE/2, window=window)
-    ax5 = fig.add_subplot(324)
-    Pxx,freqs, bins, im = ax5.specgram(ksignal_r[0:200*WINSIZE],
-                                   NFFT=WINSIZE, Fs=44100,
-                                   noverlap=WINSIZE/2, window=window)
-    ax6 = fig.add_subplot(326)
-    Pxx,freqs, bins, im = ax6.specgram(sig_out_r[0:200*WINSIZE],
-                                   NFFT=WINSIZE, Fs=44100,
-                                   noverlap=WINSIZE/2, window=window)
-    plt.show()
+    #import matplotlib.pyplot as plt
+    #fig = plt.figure()
+    #ax = fig.add_subplot(321)
+    #Pxx,freqs, bins, im = ax.specgram(ssignal_l[0:200*WINSIZE],
+    #                               NFFT=WINSIZE, Fs=44100,
+    #                               noverlap=WINSIZE/2, window=window)
+    #ax2 = fig.add_subplot(323)
+    #Pxx,freqs, bins, im = ax2.specgram(ksignal_l[0:200*WINSIZE],
+    #                               NFFT=WINSIZE, Fs=44100,
+    #                               noverlap=WINSIZE/2, window=window)
+    #ax3 = fig.add_subplot(325)
+    #Pxx,freqs, bins, im = ax3.specgram(sig_out_l[0:200*WINSIZE],
+    #                               NFFT=WINSIZE, Fs=44100,
+    #                               noverlap=WINSIZE/2, window=window)
+    #ax4 = fig.add_subplot(322)
+    #Pxx,freqs, bins, im = ax4.specgram(ssignal_r[0:200*WINSIZE],
+    #                               NFFT=WINSIZE, Fs=44100,
+    #                               noverlap=WINSIZE/2, window=window)
+    #ax5 = fig.add_subplot(324)
+    #Pxx,freqs, bins, im = ax5.specgram(ksignal_r[0:200*WINSIZE],
+    #                               NFFT=WINSIZE, Fs=44100,
+    #                               noverlap=WINSIZE/2, window=window)
+    #ax6 = fig.add_subplot(326)
+    #Pxx,freqs, bins, im = ax6.specgram(sig_out_r[0:200*WINSIZE],
+    #                               NFFT=WINSIZE, Fs=44100,
+    #                               noverlap=WINSIZE/2, window=window)
+    #plt.show()
 
 
     #ltsd = LTSD(WINSIZE,window,5,lambda0=21)
@@ -170,6 +170,8 @@ if __name__ == "__main__":
     #print "vad is Done"
 
 
-    #result = uniting_channles(sig_out_l, sig_out_r)
-    #write_signal(outfile, params, result)
-    #print "create wave file is Done"
+    result = uniting_channles(sig_out_l, sig_out_r)
+    write_signal(outfile, params, result)
+    print "create wave file is Done"
+    
+    
