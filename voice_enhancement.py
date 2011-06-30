@@ -10,15 +10,15 @@ class SupectralSubtruction():
             
     def compute(self,signal,noise):
         s_spec = sp.fft(signal*self._window)
-        s_amp = sp.absolute(s_spec)**2.0
+        s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
         n_spec = sp.fft(noise*self._window)
-        n_amp = sp.absolute(n_spec)**2.0
-        s_amp = s_amp - n_amp*self._ratio
-        s_amp = sp.maximum(s_amp,0)
-        s_amp = sp.sqrt(s_amp)
-        s_spec = s_amp * sp.exp(s_phase*1j)
-        return sp.real(sp.ifft(s_spec))
+        n_amp = sp.absolute(n_spec)
+        amp = s_amp**2.0 - n_amp**2.0*self._ratio
+        amp = sp.maximum(amp,0)
+        amp = sp.sqrt(amp)
+        spec = amp * sp.exp(s_phase*1j)
+        return sp.real(sp.ifft(spec))
 
 class SpectrumReconstruction(object):
     def __init__(self,winsize,window,alpha=0.98):
