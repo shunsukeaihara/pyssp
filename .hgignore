@@ -5,4 +5,7 @@ syntax: glob
 *~
 *.wave
 *.wav
+*.mp3
+*.ogg
+*.raw
 #*
