@@ -7,11 +7,11 @@ from util import read_signal, get_frame,separate_channels,add_signal,uniting_cha
 from vad.ltsd import LTSD
 from voice_enhancement import SupectralSubtruction,MMSE_STSA
 
-WINSIZE=8192
+WINSIZE=4096
 VADOFFSET = 1
-songfile='sky.wav'
-karaokefile="sky_offvocal.wav"
-outfile='out.wav'
+songfile='railgun.wav'
+karaokefile="railgun_offv.wav"
+outfile='railgun_ss.wav'
 
 class KaraokeFileLoader():
     def __init__(self,winsize):
@@ -54,11 +54,11 @@ class KaraokeFileLoader():
                 break
         start=starta-100
         base = ssignal[start:start+5000]
-        small=100000
+        small=1000000
         index=0
         for i in range(startb-1000,startb-1000+10000)[0::2]:
             signal = ksignal[i:i+5000]
-            score =  math.sqrt(np.sum(np.square(base-signal)))
+            score =  math.sqrt(np.sum(np.square(np.array(list(base-signal),sp.float32))))
             if score<small:
                 index=i
                 small=score
@@ -67,8 +67,8 @@ class KaraokeFileLoader():
 def subtruction(ssignal,ksignal,window,winsize):
     nf = len(ssignal_l)/(winsize/2) - 1
     out=sp.zeros(len(ssignal),sp.float32)
-    #ss = SupectralSubtruction(winsize,window)
-    ss = MMSE_STSA(winsize,window)
+    ss = SupectralSubtruction(winsize,window)
+    #ss = MMSE_STSA(winsize,window)
     for no in xrange(nf):
         s = get_frame(ssignal, winsize, no)
         k = get_frame(ksignal, winsize, no)
@@ -114,7 +114,6 @@ if __name__ == "__main__":
     print "Alignment is done"
     window = sp.hanning(WINSIZE)
 
-    
     sig_out_l = subtruction(ssignal_l,ksignal_l,window,WINSIZE)
     sig_out_r = subtruction(ssignal_r,ksignal_r,window,WINSIZE)
     print "Spectral Subtraction is Done"
@@ -151,23 +150,23 @@ if __name__ == "__main__":
     #plt.show()
 
 
-    #ltsd = LTSD(WINSIZE,window,5,lambda0=21)
-    #res_l,ltsds_l =  ltsd.compute_without_noise(sig_out_l)
-    #ltsd = LTSD(WINSIZE,window,5,lambda0=21)
-    #res_r,ltsds_r =  ltsd.compute_without_noise(sig_out_r)
-    #import matplotlib.pyplot as plt
-    #fig = plt.figure()
-    #ax = fig.add_subplot(111)
-    #ax.plot(ltsds_l)
-    #ax.plot(ltsds_r)
-    #plt.show()
+    ltsd = LTSD(WINSIZE,window,5,lambda0=40)
+    res_l,ltsds_l =  ltsd.compute_without_noise(sig_out_l)
+    ltsd = LTSD(WINSIZE,window,5,lambda0=40)
+    res_r,ltsds_r =  ltsd.compute_without_noise(sig_out_r)
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(ltsds_l)
+    ax.plot(ltsds_r)
+    plt.show()
     #print res_l
     #print res_r
-    #print "LTSD based vad is Done"
+    print "LTSD based vad is Done"
 
-    #sig_out_l = vad(res_l,sig_out_l,WINSIZE,window)
-    #sig_out_r = vad(res_l,sig_out_r,WINSIZE,window)
-    #print "vad is Done"
+    sig_out_l = vad(res_l,sig_out_l,WINSIZE,window)
+    sig_out_r = vad(res_l,sig_out_r,WINSIZE,window)
+    print "vad is Done"
 
 
     result = uniting_channles(sig_out_l, sig_out_r)
