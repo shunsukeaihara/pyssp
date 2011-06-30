@@ -8,6 +8,10 @@ the resulting work only under the same or similar license to this one.
 
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
-date: June 2011
+date:
+    June 2011
 description:
-python speech signal processing library for education
+    python speech signal processing library for education
+require:
+    python2.6 or later
+    scipy

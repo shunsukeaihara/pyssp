@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
 import scipy as sp
 import sys
 from util import read_signal, get_frame
@@ -30,7 +29,7 @@ class LTSD():
 
     def _compute_noise_avgspectrum(self,nsignal):
         windownum = len(nsignal)/(self._winsize/2) - 1
-        avgamp = np.zeros(self._winsize)
+        avgamp = sp.zeros(self._winsize)
         for l in xrange(windownum):
             avgamp += sp.absolute(sp.fft(get_frame(nsignal, self._winsize,l) * self._window))
         return avgamp/float(windownum)
@@ -56,7 +55,7 @@ class LTSD():
 
     def _calc_power(self,signal,l):
         amp=self._get_amplitude(signal,l)
-        avg = 10.0*np.log10(np.sum(amp**2)/float(len(signal)))
+        avg = 10.0*sp.log10(sp.sum(amp**2)/float(len(signal)))
         return avg
     
     def compute_without_noise(self,signal):
@@ -71,7 +70,7 @@ class LTSD():
         return self._compute(signal)
 
     def _compute(self,signal):
-        ltsds = np.zeros(self._windownum)
+        ltsds = sp.zeros(self._windownum)
         prev = 0
         pair = None
         result = []
@@ -92,16 +91,16 @@ class LTSD():
         return result,ltsds
 
     def _ltse(self,signal,l):
-        maxamp = np.zeros(self._winsize)
+        maxamp = sp.zeros(self._winsize)
         for idx in range(l-self._order,l+self._order+1):
             amp = self._get_amplitude(signal,idx)
-            maxamp = np.maximum(maxamp,amp)
+            maxamp = sp.maximum(maxamp,amp)
         return maxamp
 
     def _ltsd(self,signal,l):
         if l < self._order or l+self._order >= self._windownum:
             return 0
-        return 10.0*np.log10(np.sum(self._ltse(signal,l)**2/self._avgnoise)/float(len(self._avgnoise)))
+        return 10.0*sp.log10(sp.sum(self._ltse(signal,l)**2/self._avgnoise)/float(len(self._avgnoise)))
 
 
 class AdaptiveLTSD(LTSD):
@@ -110,14 +109,14 @@ class AdaptiveLTSD(LTSD):
         LTSD.__init__(winsize,window,order,e0,e1,lambda0,lambda1)
 
     def _update_noise_spectrum(self,signal,l):
-        avgamp = np.zeros(self._winsize)
+        avgamp = sp.zeros(self._winsize)
         for idx in range(l-self._order,l+self._order+1):
             avgamp += self._get_amplitude(signal,idx)
         avgamp = avgamp / float(self.order*2 + 1)
         self._avgnoise = self._avgnoise * self._ratio + (avgamp**2)*(1.0-self._ratio)
     
     def _compute(self,signal):
-        ltsds = np.zeros(self._windownum)
+        ltsds = sp.zeros(self._windownum)
         prev = 0
         pair = None
         result = []

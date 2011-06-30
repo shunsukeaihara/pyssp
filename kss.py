@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
 import scipy as sp
 import math
 from util import read_signal, get_frame,separate_channels,add_signal,uniting_channles,write_signal
@@ -58,7 +57,7 @@ class KaraokeFileLoader():
         index=0
         for i in range(startb-1000,startb-1000+10000)[0::2]:
             signal = ksignal[i:i+5000]
-            score =  math.sqrt(np.sum(np.square(np.array(list(base-signal),sp.float32))))
+            score =  math.sqrt(sp.sum(sp.square(sp.array(list(base-signal),sp.float32))))
             if score<small:
                 index=i
                 small=score
@@ -80,7 +79,7 @@ def subtruction(ssignal,ksignal,window,winsize):
 def fin(size,signal):
     fil = sp.zeros(size,sp.float32)
     for i in xrange(size):
-        ratio=np.log10((i+1)/float(size)*10+1.0)
+        ratio=sp.log10((i+1)/float(size)*10+1.0)
         if ratio>1.0:
             ratio=1.0
         fil[i] = ratio
@@ -89,7 +88,7 @@ def fin(size,signal):
 def fout(size,signal):
     fil = sp.zeros(size,sp.float32)
     for i in xrange(size):
-        ratio = np.log10((size-i)/float(size)*10+1.0)
+        ratio = sp.log10((size-i)/float(size)*10+1.0)
         if ratio>1.0:
             ratio = 1.0
         fil[i] = ratio
