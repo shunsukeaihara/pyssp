@@ -5,13 +5,13 @@ import scipy as sp
 import math
 from util import read_signal, get_frame,separate_channels,add_signal,uniting_channles,write_signal
 from vad.ltsd import LTSD
-from voice_enhancement import SupectralSubtruction,MMSE_STSA
+from voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap
 
 WINSIZE=4096
 VADOFFSET = 1
-songfile='railgun.wav'
-karaokefile="railgun_offv.wav"
-outfile='railgun_ss.wav'
+songfile='sky.wav'
+karaokefile="sky_offv.wav"
+outfile='sky_jm.wav'
 
 class KaraokeFileLoader():
     def __init__(self,winsize):
@@ -64,11 +64,13 @@ class KaraokeFileLoader():
                 small=score
         return  start,index
 
+
 def subtruction(ssignal,ksignal,window,winsize):
     nf = len(ssignal_l)/(winsize/2) - 1
     out=sp.zeros(len(ssignal),sp.float32)
-    ss = SupectralSubtruction(winsize,window)
+    #ss = SupectralSubtruction(winsize,window)
     #ss = MMSE_STSA(winsize,window)
+    ss = JointMap(winsize,window)
     for no in xrange(nf):
         s = get_frame(ssignal, winsize, no)
         k = get_frame(ksignal, winsize, no)
@@ -149,7 +151,7 @@ if __name__ == "__main__":
     #                               noverlap=WINSIZE/2, window=window)
     #plt.show()
 
-
+    """
     ltsd = LTSD(WINSIZE,window,5,lambda0=40)
     res_l,ltsds_l =  ltsd.compute_without_noise(sig_out_l)
     ltsd = LTSD(WINSIZE,window,5,lambda0=40)
@@ -167,7 +169,7 @@ if __name__ == "__main__":
     sig_out_l = vad(res_l,sig_out_l,WINSIZE,window)
     sig_out_r = vad(res_l,sig_out_r,WINSIZE,window)
     print "vad is Done"
-
+    """
 
     result = uniting_channles(sig_out_l, sig_out_r)
     write_signal(outfile, params, result)
