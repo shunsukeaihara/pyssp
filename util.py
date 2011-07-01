@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#referd to http://kaiseki-web.lhd.nifs.ac.jp/wiki/index.php/Python_%E3%81%AB%E3%82%88%E3%82%8B%E3%82%AA%E3%83%BC%E3%83%87%E3%82%A3%E3%82%AA%E5%87%A6%E7%90%86
+
 import wave
 import numpy as np
 import scipy as sp
