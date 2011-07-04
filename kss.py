@@ -8,9 +8,9 @@ from voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogST
 
 WINSIZE=4096
 VADOFFSET = 1
-songfile='sky.wav'
-karaokefile="sky_offv.wav"
-outfile='sky_lmmse.wav'
+songfile='maniac.wav'
+karaokefile="maniac_offv.wav"
+outfile="maniac_lmmse.wav"
 
 class KaraokeFileLoader():
     def __init__(self,winsize):

@@ -20,6 +20,16 @@ class SupectralSubtruction():
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
 
+    def compute_by_noise_amp(self,signal,n_amp):
+        s_spec = sp.fft(signal*self._window)
+        s_amp = sp.absolute(s_spec)
+        s_phase = sp.angle(s_spec)
+        amp = s_amp**2.0 - n_amp**2.0*self._ratio
+        amp = sp.maximum(amp,0)
+        amp = sp.sqrt(amp)
+        spec = amp * sp.exp(s_phase*1j)
+        return sp.real(sp.ifft(spec))
+    
 class SpectrumReconstruction(object):
     def __init__(self,winsize,window,alpha=0.99):
         self._window=window
@@ -29,7 +39,9 @@ class SpectrumReconstruction(object):
         self._prevAmp = sp.zeros(winsize,sp.float32)
 
     def compute(self,signal,noise):
-        return signal
+        n_spec = sp.fft(noise*self._window)
+        n_amp = sp.absolute(n_spec)
+        return self.compute_by_noise_amp(signal,n_amp)
 
     def _calc_aposteriori_snr(self,s_amp,n_amp):
         return s_amp**2.0/n_amp**2.0
@@ -41,13 +53,11 @@ class MMSE_STSA(SpectrumReconstruction):
     def __init__(self,winsize,window,alpha=0.99):
         self._gamma15=spc.gamma(1.5)
         super(self.__class__,self).__init__(winsize,window,alpha)
-            
-    def compute(self,signal,noise):
+
+    def compute_by_noise_amp(self,signal,n_amp):
         s_spec = sp.fft(signal*self._window)
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
-        n_spec = sp.fft(noise*self._window)
-        n_amp = sp.absolute(n_spec)
         gamma = self._calc_aposteriori_snr(s_amp,n_amp)
         xi = self._calc_apriori_snr(gamma)
         self._prevGamma = gamma
@@ -62,17 +72,16 @@ class MMSE_STSA(SpectrumReconstruction):
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
 
+
 class MMSE_LogSTSA(SpectrumReconstruction):
     def __init__(self,winsize,window,alpha=0.99):
         self._gamma15=spc.gamma(1.5)
         super(self.__class__,self).__init__(winsize,window,alpha)
-            
-    def compute(self,signal,noise):
+
+    def compute_by_noise_amp(self,signal,n_amp):
         s_spec = sp.fft(signal*self._window)
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
-        n_spec = sp.fft(noise*self._window)
-        n_amp = sp.absolute(n_spec)
         gamma = self._calc_aposteriori_snr(s_amp,n_amp)
         xi = self._calc_apriori_snr(gamma)
         self._prevGamma = gamma
@@ -93,12 +102,10 @@ class JointMap(SpectrumReconstruction):
         self._tau = tau
         super(self.__class__,self).__init__(winsize,window,alpha)
             
-    def compute(self,signal,noise):
+    def compute_by_noise_amp(self,signal,n_amp):
         s_spec = sp.fft(signal*self._window)
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
-        n_spec = sp.fft(noise*self._window)
-        n_amp = sp.absolute(n_spec)
         gamma = self._calc_aposteriori_snr(s_amp,n_amp)
         xi = self._calc_apriori_snr(gamma)
         self._prevGamma = gamma
