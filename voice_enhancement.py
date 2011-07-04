@@ -59,7 +59,31 @@ class MMSE_STSA(SpectrumReconstruction):
         self._G[idx] = 0.0
         amp = self._G * s_amp
         amp = sp.maximum(amp,0.0)
-        self._prevAmp = amp
+        spec = amp * sp.exp(s_phase*1j)
+        return sp.real(sp.ifft(spec))
+
+class MMSE_LogSTSA(SpectrumReconstruction):
+    def __init__(self,winsize,window,alpha=0.99):
+        self._gamma15=spc.gamma(1.5)
+        super(self.__class__,self).__init__(winsize,window,alpha)
+            
+    def compute(self,signal,noise):
+        s_spec = sp.fft(signal*self._window)
+        s_amp = sp.absolute(s_spec)
+        s_phase = sp.angle(s_spec)
+        n_spec = sp.fft(noise*self._window)
+        n_amp = sp.absolute(n_spec)
+        gamma = self._calc_aposteriori_snr(s_amp,n_amp)
+        xi = self._calc_apriori_snr(gamma)
+        self._prevGamma = gamma
+        nu = gamma * xi / (1.0+xi)
+        self._G = xi/(1.0+xi)*sp.exp(0.5*spc.exp1(nu))
+        idx = sp.isnan(self._G) + sp.isinf(self._G)
+        self._G[idx] = xi[idx] / ( xi[idx] + 1.0)
+        idx = sp.isnan(self._G) + sp.isinf(self._G)
+        self._G[idx] = 0.0
+        amp = self._G * s_amp
+        amp = sp.maximum(amp,0.0)
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
 
@@ -85,5 +109,6 @@ class JointMap(SpectrumReconstruction):
         idx = sp.isnan(self._G) + sp.isinf(self._G)
         self._G[idx] = 0.0
         amp = self._G * s_amp
+        amp = sp.maximum(amp,0.0)
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))

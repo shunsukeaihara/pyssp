@@ -4,13 +4,13 @@ import scipy as sp
 import math
 from util import read_signal, get_frame,separate_channels,add_signal,uniting_channles,write_signal
 from vad.ltsd import LTSD
-from voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap
+from voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 
 WINSIZE=4096
 VADOFFSET = 1
 songfile='sky.wav'
 karaokefile="sky_offv.wav"
-outfile='sky_jm.wav'
+outfile='sky_lmmse.wav'
 
 class KaraokeFileLoader():
     def __init__(self,winsize):
@@ -69,7 +69,8 @@ def subtruction(ssignal,ksignal,window,winsize):
     out=sp.zeros(len(ssignal),sp.float32)
     #ss = SupectralSubtruction(winsize,window)
     #ss = MMSE_STSA(winsize,window)
-    ss = JointMap(winsize,window)
+    ss = MMSE_LogSTSA(winsize,window)
+    #ss = JointMap(winsize,window)
     for no in xrange(nf):
         s = get_frame(ssignal, winsize, no)
         k = get_frame(ksignal, winsize, no)
@@ -119,8 +120,8 @@ if __name__ == "__main__":
     sig_out_r = subtruction(ssignal_r,ksignal_r,window,WINSIZE)
     print "Spectral Subtraction is Done"
 
-    sig_out_l[sp.isnan(sig_out_l)]=0.0
-    sig_out_r[sp.isnan(sig_out_r)]=0.0
+    sig_out_l[sp.isnan(sig_out_l)+sp.isinf(sig_out_l)]=0.0
+    sig_out_r[sp.isnan(sig_out_r)+sp.isinf(sig_out_r)]=0.0
 
     #import matplotlib.pyplot as plt
     #fig = plt.figure()
