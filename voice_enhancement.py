@@ -21,11 +21,12 @@ class SupectralSubtruction():
         return sp.real(sp.ifft(spec))
 
 class SpectrumReconstruction(object):
-    def __init__(self,winsize,window,alpha=0.98):
+    def __init__(self,winsize,window,alpha=0.99):
         self._window=window
         self._G = sp.zeros(winsize,sp.float32)
         self._prevGamma = sp.zeros(winsize,sp.float32)
         self._alpha = alpha
+        self._prevAmp = sp.zeros(winsize,sp.float32)
 
     def compute(self,signal,noise):
         return signal
@@ -34,7 +35,7 @@ class SpectrumReconstruction(object):
         return s_amp**2.0/n_amp**2.0
 
     def _calc_apriori_snr(self,gamma):
-        return self._alpha*self._G**2 * self._prevGamma + (1.0-self._alpha)*sp.maximum(gamma-1.0, 0)#a priori s/n ratio
+        return self._alpha*self._G**2.0 * self._prevGamma + (1.0-self._alpha)*sp.maximum(gamma-1.0, 0.0)#a priori s/n ratio
 
 class MMSE_STSA(SpectrumReconstruction):
     def __init__(self,winsize,window,alpha=0.99):
@@ -50,13 +51,15 @@ class MMSE_STSA(SpectrumReconstruction):
         gamma = self._calc_aposteriori_snr(s_amp,n_amp)
         xi = self._calc_apriori_snr(gamma)
         self._prevGamma = gamma
-        nu = gamma * xi / (1+xi)
-        self._G = (self._gamma15*sp.sqrt(nu)/gamma)*sp.exp(-nu/2)*((1+nu)*spc.i0(nu/2)+nu*spc.i1(nu/2))
+        nu = gamma * xi / (1.0+xi)
+        self._G = (self._gamma15*sp.sqrt(nu)/gamma)*sp.exp(-nu/2.0)* ((1.0+nu)*spc.i0(nu/2.0)+nu*spc.i1(nu/2.0))
         idx = sp.isnan(self._G) + sp.isinf(self._G)
-        #self._G[idx] = xi[idx] / ( xi[idx] + 1)
+        self._G[idx] = xi[idx] / ( xi[idx] + 1.0)
+        idx = sp.isnan(self._G) + sp.isinf(self._G)
         self._G[idx] = 0.0
         amp = self._G * s_amp
-        amp = sp.maximum(amp,0)
+        amp = sp.maximum(amp,0.0)
+        self._prevAmp = amp
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
 
@@ -78,7 +81,8 @@ class JointMap(SpectrumReconstruction):
         u = 0.5 - self._mu/(4.0*sp.sqrt(gamma*xi))
         self._G = u + sp.sqrt(u**2.0 + self._tau/(gamma*2.0))
         idx = sp.isnan(self._G) + sp.isinf(self._G)
-        #self._G[idx] = xi[idx] / ( xi[idx] + 1)
+        self._G[idx] = xi[idx] / ( xi[idx] + 1)
+        idx = sp.isnan(self._G) + sp.isinf(self._G)
         self._G[idx] = 0.0
         amp = self._G * s_amp
         spec = amp * sp.exp(s_phase*1j)
