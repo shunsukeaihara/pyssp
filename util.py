@@ -57,3 +57,10 @@ def uniting_channles(leftsignal,rightsignal):
         ret.append(i)
         ret.append(j)
     return np.array(ret,sp.int16)
+
+def compute_avgspectrum(signal,winsize,window):
+    windownum = len(signal)/(winsize/2) - 1
+    avgamp = sp.zeros(winsize)
+    for l in xrange(windownum):
+        avgamp += sp.absolute(sp.fft(get_frame(signal, winsize,l) * window))
+    return avgamp/float(windownum)
