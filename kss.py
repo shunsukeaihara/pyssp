@@ -65,7 +65,7 @@ class KaraokeFileLoader():
 
 
 def subtruction(ssignal,ksignal,window,winsize):
-    nf = len(ssignal_l)/(winsize/2) - 1
+    nf = len(ssignal)/(winsize/2) - 1
     out=sp.zeros(len(ssignal),sp.float32)
     #ss = SupectralSubtruction(winsize,window)
     #ss = MMSE_STSA(winsize,window)
