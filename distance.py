@@ -24,6 +24,25 @@ def segmental_itakura_saito_spectrum_distance(s,shat,winsize,winfunc):
         ret.append(itakura_saito_spectrum_distance(s_i,shat_i,winfunc))
     return ret
 
+def log_spectrum_distance(s,shat,winfunc):
+    size = min(len(s),len(shat))
+    window = winfunc(size)
+    s = s[0:size]
+    shat = shat[0:size]
+    s_amp = sp.absolute(sp.fft(s*window))
+    shat_amp = sp.absolute(sp.fft(shat*window))
+    return sp.sqrt(sp.mean((sp.log10(s_amp / shat_amp)*10.0)**2.0))
+
+def segmental_log_spectrum_distance(s,shat,winsize,winfunc):
+    size = min(len(s),len(shat))
+    nf = size/(winsize/2) - 1
+    ret=[]
+    for no in xrange(nf):
+        s_i = get_frame(s, winsize, no)
+        shat_i = get_frame(shat, winsize, no)
+        ret.append(log_spectrum_distance(s_i,shat_i,winfunc))
+    return ret
+
 if __name__=="__main__":
     import sys
     winsize = int(sys.argv[1])
