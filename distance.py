@@ -3,23 +3,6 @@
 import scipy as sp
 from util import get_frame, read_signal
 
-def itakura_saito_distotion_measure(s,shat):
-    size = min(len(s),len(shat))
-    s = s[0:size]
-    shat = shat[0:size]
-    return sp.sum(s - shat + sp.exp(shat)/sp.exp(s)-1.0)/float(size)
-
-
-def segmental_itakura_saito_distotion_measure(s,shat,winsize):
-    size = min(len(s),len(shat))
-    nf = size/(winsize/2) - 1
-    ret=[]
-    for no in xrange(nf):
-        s_i = get_frame(s, winsize, no)
-        shat_i = get_frame(shat, winsize, no)
-        ret.append(itakura_saito_distotion_measure(s_i,shat_i))
-    return ret
-
 
 def itakura_saito_spectrum_distance(s,shat,winfunc):
     size = min(len(s),len(shat))
@@ -38,19 +21,18 @@ def segmental_itakura_saito_spectrum_distance(s,shat,winsize,winfunc):
     for no in xrange(nf):
         s_i = get_frame(s, winsize, no)
         shat_i = get_frame(shat, winsize, no)
-        ret.append(itakura_saito_spectrum_distance(s_i,shat_i))
+        ret.append(itakura_saito_spectrum_distance(s_i,shat_i,winfunc))
     return ret
 
 if __name__=="__main__":
     import sys
-    winsize = int(sys.args[1])
-    s = read_signal(sys.args[2])
-    shat = read_signal(sys.args[3])
+    winsize = int(sys.argv[1])
+    s = read_signal(sys.argv[2],winsize)[0]
+    shat = read_signal(sys.argv[3],winsize)[0]
     sissd = segmental_itakura_saito_spectrum_distance(s,shat,winsize,sp.hanning)
-    sisdm = segmental_itakura_saito_distotion_measure(s,shat,winsize)
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(sissd)
-    ax.plot(sisdm)
     plt.show()
+    
