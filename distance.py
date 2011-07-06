@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import scipy as sp
-from util import get_frame
+from util import get_frame, read_signal
 
 def itakura_saito_distotion_measure(s,shat):
     size = min(len(s),len(shat))
@@ -42,4 +42,15 @@ def segmental_itakura_saito_spectrum_distance(s,shat,winsize,winfunc):
     return ret
 
 if __name__=="__main__":
-    pass
+    import sys
+    winsize = int(sys.args[1])
+    s = read_signal(sys.args[2])
+    shat = read_signal(sys.args[3])
+    sissd = segmental_itakura_saito_spectrum_distance(s,shat,winsize,sp.hanning)
+    sisdm = segmental_itakura_saito_distotion_measure(s,shat,winsize)
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(sissd)
+    ax.plot(sisdm)
+    plt.show()
