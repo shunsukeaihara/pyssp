@@ -13,7 +13,7 @@ class SupectralSubtruction():
         n_pow = sp.absolute(n_spec)**2.0
         return self.compute_by_noise_pow(signal,n_pow)
         
-    def compute_by_noise_amp(self,signal,n_pow):
+    def compute_by_noise_pow(self,signal,n_pow):
         s_spec = sp.fft(signal*self._window)
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
@@ -26,10 +26,10 @@ class SupectralSubtruction():
 class SpectrumReconstruction(object):
     def __init__(self,winsize,window,alpha=0.99):
         self._window=window
-        self._G = sp.ones(winsize,sp.float32)
-        self._prevGamma = sp.ones(winsize,sp.float32)
+        self._G = sp.zeros(winsize,sp.float32)
+        self._prevGamma = sp.zeros(winsize,sp.float32)
         self._alpha = alpha
-        self._prevAmp = sp.ones(winsize,sp.float32)
+        self._prevAmp = sp.zeros(winsize,sp.float32)
 
     def compute(self,signal,noise):
         n_spec = sp.fft(noise*self._window)
@@ -101,7 +101,7 @@ class JointMap(SpectrumReconstruction):
         super(self.__class__,self).__init__(winsize,window,alpha)
             
     def compute_by_noise_pow(self,signal,n_pow):
-        s_spec = sp.fft(signal*self._window)
+        s_spec = sp.fft(signal *self._window)
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
         gamma = self._calc_aposteriori_snr(s_amp,n_pow)
@@ -115,7 +115,6 @@ class JointMap(SpectrumReconstruction):
         self._G[idx] = 0.1
         idx = sp.less(s_amp**2.0,n_pow)
         self._G[idx] = 0.1
-        print self._G
         amp = self._G * s_amp
         amp = sp.maximum(amp,0.0)
         self._prevAmp = amp

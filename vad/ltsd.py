@@ -106,13 +106,13 @@ class LTSD():
 class AdaptiveLTSD(LTSD):
     def __init__(self,winsize,window,order,ratio=0.95,e0=200,e1=300,lambda0=40,lambda1=50):
         self._ratio = ratio
-        LTSD.__init__(winsize,window,order,e0,e1,lambda0,lambda1)
+        LTSD.__init__(self,winsize,window,order,e0,e1,lambda0,lambda1)
 
     def _update_noise_spectrum(self,signal,l):
         avgamp = sp.zeros(self._winsize)
         for idx in range(l-self._order,l+self._order+1):
             avgamp += self._get_amplitude(signal,idx)
-        avgamp = avgamp / float(self.order*2 + 1)
+        avgamp = avgamp / float(self._order*2 + 1)
         self._avgnoise = self._avgnoise * self._ratio + (avgamp**2)*(1.0-self._ratio)
     
     def _compute(self,signal):

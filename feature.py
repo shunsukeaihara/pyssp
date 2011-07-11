@@ -12,7 +12,7 @@ def lpc(signal,order,winsize,window):
     k = sp.zeros(order+1,sp.float32)
     r = sp.signal.correlate(signal)[signal.size-1:signal.size+order]
     a[0]=1.0
-    w=r[0]
+    w=r[1]
     u=r[0]
     for m in xrange(1,order+1):
         k[m] = w/u
