@@ -15,8 +15,8 @@ def read_signal(filename, winsize):
                wf.getframerate(), wf.getnframes(),
                wf.getcomptype(), wf.getcompname()))
     siglen=((int )(len(str)/2/winsize) + 1) * winsize
-    signal=sp.zeros(siglen, sp.int16)
-    signal[0:len(str)/2] = sp.fromstring(str,sp.int16)
+    signal=sp.zeros(siglen, sp.float32)
+    signal[0:len(str)/2] = sp.float32(sp.fromstring(str,sp.int16))/32767.0
     return [signal, params]
 
 
@@ -37,7 +37,7 @@ def add_signal(signal, frame, winsize, no ):
 def write_signal(filename, params ,signal):
     wf=wave.open(filename,'wb')
     wf.setparams(params)
-    s=sp.int16(signal).tostring()
+    s=sp.int16(signal*32767.0).tostring()
     wf.writeframes(s)
 
 
