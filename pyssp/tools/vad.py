@@ -44,7 +44,7 @@ def read(fname,winsize):
     
 if __name__ == "__main__":
     """
-    python vad.py WINSIZE THREATHOLD FILENAME
+    python vad.py -w WINSIZE -t THREATHOLD FILENAME
     """
     parser = optparse.OptionParser(usage="%python vad [-t THREASHOLD] [-w WINSIZE] INPUTFILE \n if INPUTFILE is \"-\", read wave data from stdin")
 
