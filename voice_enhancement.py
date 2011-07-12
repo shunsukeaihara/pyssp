@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import scipy as sp
 import scipy.special as spc
+from util import smooth
 
 class SupectralSubtruction():
     def __init__(self,winsize,window,ratio=2.0):
@@ -18,7 +19,7 @@ class SupectralSubtruction():
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
         amp = s_amp**2.0 - n_pow*self._ratio
-        amp = sp.maximum(amp,0)
+        amp = sp.maximum(amp,0.0)
         amp = sp.sqrt(amp)
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
@@ -62,7 +63,9 @@ class MMSE_STSA(SpectrumReconstruction):
         idx = sp.isnan(self._G) + sp.isinf(self._G)
         self._G[idx] = xi[idx] / ( xi[idx] + 1.0)
         idx = sp.isnan(self._G) + sp.isinf(self._G)
-        self._G[idx] = 0.0
+        self._G[idx] = 0.1
+        idx = sp.less(s_amp**2.0,n_pow)
+        self._G[idx] = 0.1
         amp = self._G * s_amp
         amp = sp.maximum(amp,0.0)
         self._prevAmp = amp
@@ -81,15 +84,19 @@ class MMSE_LogSTSA(SpectrumReconstruction):
         s_phase = sp.angle(s_spec)
         gamma = self._calc_aposteriori_snr(s_amp,n_pow)
         xi = self._calc_apriori_snr(gamma)
+        #xi = self._calc_apriori_snr2(gamma,n_pow)
         self._prevGamma = gamma
         nu = gamma * xi / (1.0+xi)
         self._G = xi/(1.0+xi)*sp.exp(0.5*spc.exp1(nu))
         idx = sp.isnan(self._G) + sp.isinf(self._G)
         self._G[idx] = xi[idx] / ( xi[idx] + 1.0)
         idx = sp.isnan(self._G) + sp.isinf(self._G)
-        self._G[idx] = 0.0
+        self._G[idx] = 0.1
+        idx = sp.less(s_amp**2.0,n_pow)
+        self._G[idx] = 0.1
         amp = self._G * s_amp
         amp = sp.maximum(amp,0.0)
+        amp = smooth(amp)
         self._prevAmp = amp
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
@@ -105,7 +112,8 @@ class JointMap(SpectrumReconstruction):
         s_amp = sp.absolute(s_spec)
         s_phase = sp.angle(s_spec)
         gamma = self._calc_aposteriori_snr(s_amp,n_pow)
-        xi = self._calc_apriori_snr2(gamma,n_pow)
+        #xi = self._calc_apriori_snr2(gamma,n_pow)
+        xi = self._calc_apriori_snr(gamma)
         self._prevGamma = gamma
         u = 0.5 - self._mu/(4.0*sp.sqrt(gamma*xi))
         self._G = u + sp.sqrt(u**2.0 + self._tau/(gamma*2.0))
@@ -116,7 +124,9 @@ class JointMap(SpectrumReconstruction):
         idx = sp.less(s_amp**2.0,n_pow)
         self._G[idx] = 0.1
         amp = self._G * s_amp
+        #amp = smooth(amp,5,'bartlett')#smoothing
         amp = sp.maximum(amp,0.0)
+
         self._prevAmp = amp
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))

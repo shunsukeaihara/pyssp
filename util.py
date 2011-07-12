@@ -71,3 +71,29 @@ def compute_avgpowerspectrum(signal,winsize,window):
     for l in xrange(windownum):
         avgpow += sp.absolute(sp.fft(get_frame(signal, winsize,l) * window))**2.0
     return avgpow/float(windownum)
+
+def smooth(x, window_len=10, window='hanning'):
+    """
+    from http://www.scipy.org/Cookbook/SignalSmooth
+    """
+    if x.ndim != 1:
+        raise ValueError, "smooth only accepts 1 dimension arrays."
+
+    if x.size < window_len:
+        raise ValueError, "Input vector needs to be bigger than window size."
+
+    if window_len < 2:
+        return x
+
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+
+    s=sp.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
+    #print(len(s))
+    
+    if window == 'flat': #moving average
+        w = sp.ones(window_len,'d')
+    else:
+        w = getattr(np, window)(window_len)
+    y = sp.convolve(w/w.sum(), s, mode='same')
+    return y[window_len-1:-window_len+1]
