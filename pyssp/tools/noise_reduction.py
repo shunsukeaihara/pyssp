@@ -12,7 +12,7 @@ WINSIZE=1024
 
 def noise_reduction(signal,winsize,window,ss):
     out=sp.zeros(len(signal),sp.float32)
-    n_pow = compute_avgpowerspectrum(signal[0:winsize*10],winsize,window)
+    n_pow = compute_avgpowerspectrum(signal[0:winsize*5],winsize,window)
     for no in xrange(nf):
         s = get_frame(signal, winsize, no)
         add_signal(out, ss.compute_by_noise_pow(s,n_pow), winsize, no)

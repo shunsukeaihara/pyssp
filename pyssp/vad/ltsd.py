@@ -60,8 +60,8 @@ class LTSD():
     
     def compute_without_noise(self,signal):
         self._windownum = len(signal)/(self._winsize/2) - 1
-        #Calcurate the average noise spectrum amplitude based　on 20 frames in the head part of input signal.
-        self._avgnoise = self._compute_noise_avgspectrum(signal[0:self._winsize*20])**2
+        #Calcurate the average noise spectrum amplitude based　on 5 frames in the head part of input signal.
+        self._avgnoise = self._compute_noise_avgspectrum(signal[0:self._winsize*5])**2
         return self._compute(signal)
     
     def compute_with_noise(self,signal,noise):
