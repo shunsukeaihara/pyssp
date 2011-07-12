@@ -10,9 +10,9 @@ import optparse
 
 WINSIZE=1024
 
-def noise_reduction(signal,winsize,window,ss):
+def noise_reduction(signal,params,winsize,window,ss):
     out=sp.zeros(len(signal),sp.float32)
-    n_pow = compute_avgpowerspectrum(signal[0:winsize*5],winsize,window)
+    n_pow = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/3.0)],winsize,window)#maybe 300ms
     for no in xrange(nf):
         s = get_frame(signal, winsize, no)
         add_signal(out, ss.compute_by_noise_pow(s,n_pow), winsize, no)
@@ -78,7 +78,7 @@ if __name__=="__main__":
         outfname = "%s_jm%s" % (root,ext)
 
     if params[0]==1:
-        write(params, noise_reduction(signal,options.winsize,window,ss))
+        write(params, noise_reduction(signal,params,options.winsize,window,ss))
     elif params[0]==2:
         l,r = separate_channels(signal)
-        write(params, uniting_channles(noise_reduction(l,options.winsize,window,ss),noise_reduction(r,options.winsize,window,ss)))
+        write(params, uniting_channles(noise_reduction(l,params,options.winsize,window,ss),noise_reduction(r,params,options.winsize,window,ss)))

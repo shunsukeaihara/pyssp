@@ -7,6 +7,7 @@ import tempfile
 from pyssp.util import get_frame,add_signal,read_signal,separate_channels,uniting_channles
 from pyssp.vad.ltsd import LTSD
 import optparse
+from scikits.learn.hmm import GaussianHMM
 
 WINSIZE = 1024
 
@@ -41,10 +42,31 @@ def read(fname,winsize):
     else:
         return read_signal(fname,winsize)
 
-    
+
+def hmm2span(ret):
+    noise = ret[0]
+    flag = 0
+    res = []
+    span=None
+    for i in xrange(len(ret)):
+        if ret[i]==noise:
+            if flag==1:
+                span.append(i-1)
+                res.append(span)
+                span=None
+                flag=0
+        else:
+            if flag==0:
+                span=[i]
+                flag=1
+    if span!=None:
+        span.append(len(ret)-1)
+        res.appedn(span)
+    return res
+
 if __name__ == "__main__":
     """
-    python vad.py WINSIZE THREATHOLD FILENAME
+    python vad.py -w WINSIZE -t THREATHOLD FILENAME
     """
     parser = optparse.OptionParser(usage="%python vad [-t THREASHOLD] [-w WINSIZE] INPUTFILE \n if INPUTFILE is \"-\", read wave data from stdin")
 
@@ -61,7 +83,11 @@ if __name__ == "__main__":
     if params[0]==1:
         ltsd = LTSD(windowsize,window,5,lambda0=options.th)
         res,ltsds =  ltsd.compute_with_noise(signal,signal[0:windowsize*int(params[2] /float(windowsize)/3.0)])#maybe 300ms
-        write(params,vad(res,signal,windowsize,window))
+        mhmm = GaussianHMM(n_states=2)
+        x =sp.array([[i] for i in ltsds])
+        mhmm.fit([x],n_iter=0)
+        ret = mhmm.decode(x)[1].tolist()
+        write(params,vad(hmm2span(ret),signal,windowsize,window))
     elif params[0]==2:
         l,r = separate_channels(signal)
         ltsd_l = LTSD(windowsize,window,5,lambda0=options.th)
