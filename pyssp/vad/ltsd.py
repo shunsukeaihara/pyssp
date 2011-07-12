@@ -58,10 +58,10 @@ class LTSD():
         avg = 10.0*sp.log10(sp.sum(amp**2)/float(len(signal)))
         return avg
     
-    def compute_without_noise(self,signal):
+    def compute_without_noise(self,signal,size):
         self._windownum = len(signal)/(self._winsize/2) - 1
-        #Calcurate the average noise spectrum amplitude based　on 5 frames in the head part of input signal.
-        self._avgnoise = self._compute_noise_avgspectrum(signal[0:self._winsize*5])**2
+        #Calcurate the average noise spectrum amplitude based　on first 'size' bytes in the head part of input signal.
+        self._avgnoise = self._compute_noise_avgspectrum(signal[0:size])**2
         return self._compute(signal)
     
     def compute_with_noise(self,signal,noise):
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     window = sp.hanning(WINSIZE)
     
     ltsd = LTSD(WINSIZE,window,5)
-    res,ltsds =  ltsd.compute_without_noise(signal)
+    res,ltsds =  ltsd.compute_without_noise(signal,WINSIZE*int(params[2] /float(WINSIZE)/3.0))
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)

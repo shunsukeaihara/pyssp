@@ -152,9 +152,9 @@ if __name__ == "__main__":
     #plt.show()
 
     ltsd = LTSD(WINSIZE,window,5,lambda0=40)
-    res_l,ltsds_l =  ltsd.compute_without_noise(sig_out_l)
+    res_l,ltsds_l =  ltsd.compute_without_noise(sig_out_l,WINSIZE*int(params[2] /float(WINSIZE)/3.0))
     ltsd = LTSD(WINSIZE,window,5,lambda0=40)
-    res_r,ltsds_r =  ltsd.compute_without_noise(sig_out_r)
+    res_r,ltsds_r =  ltsd.compute_without_noise(sig_out_r,WINSIZE*int(params[2] /float(WINSIZE)/3.0))
     """
     import matplotlib.pyplot as plt
     fig = plt.figure()
