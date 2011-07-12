@@ -95,7 +95,6 @@ class MMSE_LogSTSA(SpectrumReconstruction):
         self._G[idx] = 0.1
         amp = self._G * s_amp
         amp = sp.maximum(amp,0.0)
-        amp = smooth(amp)
         self._prevAmp = amp
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))

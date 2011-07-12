@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import scipy as sp
 import sys
-from util import read_signal, get_frame
+from pyssp.util import read_signal, get_frame
 
 WINSIZE=2048
 

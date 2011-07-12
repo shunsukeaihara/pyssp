@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import scipy as sp
-from util import read_signal,get_frame,add_signal,write_signal,separate_channels,uniting_channles,compute_avgpowerspectrum,compute_avgamplitude
-from voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
+from pyssp.util import read_signal,get_frame,add_signal,write_signal,separate_channels,uniting_channles,compute_avgpowerspectrum,compute_avgamplitude
+from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 import optparse
 
 WINSIZE=1024
