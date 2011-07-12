@@ -21,7 +21,7 @@ def write(param,signal):
     st = tempfile.TemporaryFile()
     wf=wave.open(st,'wb')
     wf.setparams(params)
-    s=sp.int16(signal).tostring()
+    s=sp.int16(signal*32767.0).tostring()
     wf.writeframes(s)
     st.seek(0)
     print st.read()
@@ -35,8 +35,8 @@ def read(fname,winsize):
                    wf.getframerate(), wf.getnframes(),
                    wf.getcomptype(), wf.getcompname()))
         siglen=((int )(len(str)/2/winsize) + 1) * winsize
-        signal=sp.zeros(siglen, sp.int16)
-        signal[0:len(str)/2] = sp.fromstring(str,sp.int16)
+        signal=sp.zeros(siglen, sp.float32)
+        signal[0:len(str)/2] = sp.float32(sp.fromstring(str,sp.int16))/32767.0
         return signal,params
     else:
         return read_signal(fname,winsize)

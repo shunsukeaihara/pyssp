@@ -6,16 +6,24 @@ import wave
 import tempfile
 from pyssp.util import read_signal,get_frame,add_signal,separate_channels,uniting_channles,compute_avgpowerspectrum
 from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
+from pyssp.noise_estimation import MinimumStatistics
 import optparse
 
 WINSIZE=1024
 
 def noise_reduction(signal,params,winsize,window,ss):
     out=sp.zeros(len(signal),sp.float32)
-    n_pow = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/3.0)],winsize,window)#maybe 300ms
+    ms = MinimumStatistics(winsize,window,params[2])
+    NP_lambda = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/3.0)],winsize,window)#maybe 300ms
+    ms.init_noise_profile(NP_lambda)
     for no in xrange(nf):
-        s = get_frame(signal, winsize, no)
-        add_signal(out, ss.compute_by_noise_pow(s,n_pow), winsize, no)
+        frame = get_frame(signal, winsize, no)
+        n_pow = ms.compute(frame,no)
+        if int(params[2] /float(winsize)/3.0)*2>no:
+            n_pow = NP_lambda
+        res = ss.compute_by_noise_pow(frame,n_pow)
+        add_signal(out, res,  winsize, no)
+    ms.show_debug_result()
     return out
 
 
