@@ -46,26 +46,28 @@ if __name__ == "__main__":
     """
     python vad.py -w WINSIZE -t THREATHOLD FILENAME
     """
-    parser = optparse.OptionParser(usage="%python vad [-t THREASHOLD] [-w WINSIZE] INPUTFILE \n if INPUTFILE is \"-\", read wave data from stdin")
+    parser = optparse.OptionParser(usage="%python vad [-t THREASHOLD] [-w WINSIZE] [- s NOISETIME(ms)] INPUTFILE \n if INPUTFILE is \"-\", read wave data from stdin")
 
     parser.add_option("-w", type="int", dest="winsize", default=WINSIZE)
     parser.add_option("-t", type="int", dest="th", default=15)
-
+    parser.add_option("-s", type="int", dest="ntime", default=300)
+    
     (options, args) = parser.parse_args()
     windowsize = options.winsize
 
     fname = args[0]
     signal, params = read(fname,options.winsize)
     window = sp.hanning(windowsize)
+    ntime = options.ntime
 
     if params[0]==1:
         ltsd = LTSD(windowsize,window,5,lambda0=options.th)
-        res,ltsds =  ltsd.compute_with_noise(signal,signal[0:windowsize*int(params[2] /float(windowsize)/3.0)])#maybe 300ms
+        res,ltsds =  ltsd.compute_with_noise(signal,signal[0:windowsize*int(params[2] /float(windowsize)/(1000.0/ntime))])#maybe 300ms
         write(params,vad(res,signal,windowsize,window))
     elif params[0]==2:
         l,r = separate_channels(signal)
         ltsd_l = LTSD(windowsize,window,5,lambda0=options.th)
         ltsd_r = LTSD(windowsize,window,5,lambda0=options.th)
-        out = uniting_channles(vad(ltsd_l.compute_with_noise(l,l[0:windowsize*int(params[2] /float(windowsize)/3.0)])[0],l,windowsize,window),
-                               vad(ltsd_r.compute_without_noise(r,r[0:windowsize*int(params[2] /float(windowsize)/3.0)])[0],r,windowsize,window))
+        out = uniting_channles(vad(ltsd_l.compute_with_noise(l,l[0:windowsize*int(params[2] /float(windowsize)/(1000.0/ntime))])[0],l,windowsize,window),
+                               vad(ltsd_r.compute_with_noise(r,r[0:windowsize*int(params[2] /float(windowsize)/(1000.0/ntime))])[0],r,windowsize,window))
         write(params,out)

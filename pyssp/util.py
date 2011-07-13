@@ -56,7 +56,7 @@ def uniting_channles(leftsignal,rightsignal):
     for i,j in izip(leftsignal,rightsignal):
         ret.append(i)
         ret.append(j)
-    return np.array(ret,sp.int16)
+    return np.array(ret,sp.float32)
 
 def compute_avgamplitude(signal,winsize,window):
     windownum = len(signal)/(winsize/2) - 1

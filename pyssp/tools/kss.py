@@ -2,21 +2,17 @@
 # -*- coding: utf-8 -*-
 import scipy as sp
 import math
-from pyssp.util import read_signal, get_frame,separate_channels,add_signal,uniting_channles,write_signal
-from pyssp.vad.ltsd import LTSD
+from pyssp.util import read_signal, get_frame,separate_channels,add_signal,uniting_channles
 from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
-
-WINSIZE=8192
-VADOFFSET = 1
-songfile='sky.wav'
-karaokefile= "sky_offv.wav"
-outfile="sky_ss.wav"
+import optparse
+import tempfile
+import wave
 
 class KaraokeFileLoader():
     def __init__(self,winsize):
         self._winsize = winsize
 
-    def load_file(self,songfilepath,karaokefile):
+    def load_file(self,songfile,karaokefile):
         ssignal, params = read_signal(songfile,self._winsize)
         ksignal, params = read_signal(karaokefile,self._winsize)
         sindex,kindex = self._alignment(ssignal,ksignal)
@@ -26,7 +22,7 @@ class KaraokeFileLoader():
     def _reshape_signal(self,sindex,kindex,ssignal,ksignal):
         def reshape(signal,siglen,winsize):
             length =(siglen/winsize+1)*winsize
-            ret=sp.zeros(length, sp.int16)
+            ret=sp.zeros(length, sp.float32)
             ret[0:siglen] = signal
             return ret
         slen = len(ssignal)-sindex
@@ -43,12 +39,12 @@ class KaraokeFileLoader():
     def _alignment(self,ssignal,ksignal):
         starta = 0
         for i in range(len(ssignal))[0::2]:
-            if ssignal[i]<-100 or ssignal[i]>100:
+            if ssignal[i]<-100/32767.0 or ssignal[i]>100/32767.0:
                 starta = i
                 break
         startb=0
         for i in range(len(ksignal))[0::2]:
-            if ksignal[i]<-100 or ksignal[i]>100:
+            if ksignal[i]<-100/32767.0 or ksignal[i]>100/32767.0:
                 startb = i
                 break
         start=starta-100
@@ -62,19 +58,15 @@ class KaraokeFileLoader():
                 index=i
                 small=score
         return  start,index
+        #return 0,0
 
-
-def subtruction(ssignal,ksignal,window,winsize):
+def subtruction(ssignal,ksignal,window,winsize,method):
     nf = len(ssignal)/(winsize/2) - 1
     out=sp.zeros(len(ssignal),sp.float32)
-    ss = SupectralSubtruction(winsize,window)
-    #ss = MMSE_STSA(winsize,window)
-    #ss = MMSE_LogSTSA(winsize,window)
-    #ss = JointMap(winsize,window)
     for no in xrange(nf):
         s = get_frame(ssignal, winsize, no)
         k = get_frame(ksignal, winsize, no)
-        add_signal(out, ss.compute(s,k), winsize, no)
+        add_signal(out, method.compute(s,k), winsize, no)
     return out
 
 def fin(size,signal):
@@ -105,74 +97,54 @@ def vad(vas,signal,winsize,window):
         out[(va[1]-4)*winsize/2:(va[1])*winsize/2] = fout(winsize*2,out[(va[1]-4)*winsize/2:(va[1])*winsize/2])
     return out
 
+def write(param,signal):
+    st = tempfile.TemporaryFile()
+    wf=wave.open(st,'wb')
+    wf.setparams(params)
+    s=sp.int16(signal*32767.0).tostring()
+    wf.writeframes(s)
+    st.seek(0)
+    print st.read()
+
 
 if __name__ == "__main__":
-    kl = KaraokeFileLoader(WINSIZE*2)
+    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] SONGFILE KARAOKEFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
 
-    ssignal,ksignal,params = kl.load_file(songfile,karaokefile)
+    parser.add_option("-w", type="int", dest="winsize", default=1024)
+    parser.add_option("-m", type="int", dest="method", default=0)
+
+    (options, args) = parser.parse_args()
+
+    if len(args)!=2:
+        parser.print_help()
+        exit(2)
+
+    
+    kl = KaraokeFileLoader(options.winsize*2)
+
+    ssignal,ksignal,params = kl.load_file(args[0],args[1])
     ssignal_l,ssignal_r = separate_channels(ssignal)
     ksignal_l,ksignal_r = separate_channels(ksignal)
 
-    print "Alignment is done"
-    window = sp.hanning(WINSIZE)
+    window = sp.hanning(options.winsize)
 
-    sig_out_l = subtruction(ssignal_l,ksignal_l,window,WINSIZE)
-    sig_out_r = subtruction(ssignal_r,ksignal_r,window,WINSIZE)
-    print "Spectral Subtraction is Done"
+    if options.method==0:
+        method = SupectralSubtruction(options.winsize,window)
+    elif options.method==1:
+        method = MMSE_STSA(options.winsize,window)
+    elif options.method==2:
+        method = MMSE_LogSTSA(options.winsize,window,alpha=0.99)
+    elif options.method==3:
+        method = JointMap(options.winsize,window,alpha=0.99)
+
+    sig_out_l = subtruction(ssignal_l,ksignal_l,window,options.winsize,method)
+    sig_out_r = subtruction(ssignal_r,ksignal_r,window,options.winsize,method)
 
     sig_out_l[sp.isnan(sig_out_l)+sp.isinf(sig_out_l)]=0.0
     sig_out_r[sp.isnan(sig_out_r)+sp.isinf(sig_out_r)]=0.0
 
-    #import matplotlib.pyplot as plt
-    #fig = plt.figure()
-    #ax = fig.add_subplot(321)
-    #Pxx,freqs, bins, im = ax.specgram(ssignal_l[0:200*WINSIZE],
-    #                               NFFT=WINSIZE, Fs=44100,
-    #                               noverlap=WINSIZE/2, window=window)
-    #ax2 = fig.add_subplot(323)
-    #Pxx,freqs, bins, im = ax2.specgram(ksignal_l[0:200*WINSIZE],
-    #                               NFFT=WINSIZE, Fs=44100,
-    #                               noverlap=WINSIZE/2, window=window)
-    #ax3 = fig.add_subplot(325)
-    #Pxx,freqs, bins, im = ax3.specgram(sig_out_l[0:200*WINSIZE],
-    #                               NFFT=WINSIZE, Fs=44100,
-    #                               noverlap=WINSIZE/2, window=window)
-    #ax4 = fig.add_subplot(322)
-    #Pxx,freqs, bins, im = ax4.specgram(ssignal_r[0:200*WINSIZE],
-    #                               NFFT=WINSIZE, Fs=44100,
-    #                               noverlap=WINSIZE/2, window=window)
-    #ax5 = fig.add_subplot(324)
-    #Pxx,freqs, bins, im = ax5.specgram(ksignal_r[0:200*WINSIZE],
-    #                               NFFT=WINSIZE, Fs=44100,
-    #                               noverlap=WINSIZE/2, window=window)
-    #ax6 = fig.add_subplot(326)
-    #Pxx,freqs, bins, im = ax6.specgram(sig_out_r[0:200*WINSIZE],
-    #                               NFFT=WINSIZE, Fs=44100,
-    #                               noverlap=WINSIZE/2, window=window)
-    #plt.show()
-
-    ltsd = LTSD(WINSIZE,window,5,lambda0=40)
-    res_l,ltsds_l =  ltsd.compute_without_noise(sig_out_l,WINSIZE*int(params[2] /float(WINSIZE)/3.0))
-    ltsd = LTSD(WINSIZE,window,5,lambda0=40)
-    res_r,ltsds_r =  ltsd.compute_without_noise(sig_out_r,WINSIZE*int(params[2] /float(WINSIZE)/3.0))
-    """
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(ltsds_l)
-    ax.plot(ltsds_r)
-    plt.show()
-    """
-    #print res_l
-    #print res_r
-    print "LTSD based vad is Done"
-
-    sig_out_l = vad(res_l,sig_out_l,WINSIZE,window)
-    sig_out_r = vad(res_l,sig_out_r,WINSIZE,window)
-    print "vad is Done"
 
     result = uniting_channles(sig_out_l, sig_out_r)
-    write_signal(outfile, params, result)
-    print "create wave file is Done"
+    write(params, result)
     
     

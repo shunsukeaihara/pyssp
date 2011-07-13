@@ -9,13 +9,13 @@ from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE
 from pyssp.noise_estimation import MinimumStatistics
 import optparse
 
-WINSIZE=1024
 
-def noise_reduction(signal,params,winsize,window,ss):
+def noise_reduction(signal,params,winsize,window,ss,ntime):
     out=sp.zeros(len(signal),sp.float32)
     ms = MinimumStatistics(winsize,window,params[2])
-    NP_lambda = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/3.0)],winsize,window)#maybe 300ms
+    NP_lambda = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/(1000.0/ntime))],winsize,window)#maybe 300ms
     ms.init_noise_profile(NP_lambda)
+    nf = len(signal)/(winsize/2) - 1
     for no in xrange(nf):
         frame = get_frame(signal, winsize, no)
         n_pow = ms.compute(frame,no)
@@ -23,7 +23,7 @@ def noise_reduction(signal,params,winsize,window,ss):
             n_pow = NP_lambda
         res = ss.compute_by_noise_pow(frame,n_pow)
         add_signal(out, res,  winsize, no)
-    ms.show_debug_result()
+    #ms.show_debug_result()
     return out
 
 
@@ -53,11 +53,11 @@ def read(fname,winsize):
 
 
 if __name__=="__main__":
-    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] INPUTFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
+    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] [- s NOISETIME(ms)] INPUTFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
 
-    parser.add_option("-w", type="int", dest="winsize", default=WINSIZE)
+    parser.add_option("-w", type="int", dest="winsize", default=1024)
     parser.add_option("-m", type="int", dest="method", default=0)
-
+    parser.add_option("-s", type="int", dest="ntime", default=300)
     (options, args) = parser.parse_args()
 
     if len(args)!=1:
@@ -67,7 +67,6 @@ if __name__=="__main__":
     fname = args[0]
     signal, params = read(fname,options.winsize)
 
-    nf = len(signal)/(options.winsize/2) - 1
     window = sp.hanning(options.winsize)
     import os.path
     
@@ -86,7 +85,7 @@ if __name__=="__main__":
         outfname = "%s_jm%s" % (root,ext)
 
     if params[0]==1:
-        write(params, noise_reduction(signal,params,options.winsize,window,ss))
+        write(params, noise_reduction(signal,params,options.winsize,window,ss,options.ntime))
     elif params[0]==2:
         l,r = separate_channels(signal)
-        write(params, uniting_channles(noise_reduction(l,params,options.winsize,window,ss),noise_reduction(r,params,options.winsize,window,ss)))
+        write(params, uniting_channles(noise_reduction(l,params,options.winsize,window,ss,options.ntime),noise_reduction(r,params,options.winsize,window,ss,options.ntime)))

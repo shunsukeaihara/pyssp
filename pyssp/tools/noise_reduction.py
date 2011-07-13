@@ -8,11 +8,10 @@ from pyssp.util import read_signal,get_frame,add_signal,separate_channels,unitin
 from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 import optparse
 
-WINSIZE=1024
 
-def noise_reduction(signal,params,winsize,window,ss):
+def noise_reduction(signal,params,winsize,window,ss,ntime):
     out=sp.zeros(len(signal),sp.float32)
-    n_pow = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/3.0)],winsize,window)#maybe 300ms
+    n_pow = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/(1000.0/ntime))],winsize,window)#maybe 300ms
     for no in xrange(nf):
         s = get_frame(signal, winsize, no)
         add_signal(out, ss.compute_by_noise_pow(s,n_pow), winsize, no)
@@ -45,11 +44,11 @@ def read(fname,winsize):
 
 
 if __name__=="__main__":
-    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] INPUTFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
+    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] [- s NOISETIME(ms)] INPUTFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
 
-    parser.add_option("-w", type="int", dest="winsize", default=WINSIZE)
+    parser.add_option("-w", type="int", dest="winsize", default=1024)
     parser.add_option("-m", type="int", dest="method", default=0)
-
+    parser.add_option("-s", type="int", dest="ntime", default=300)
     (options, args) = parser.parse_args()
 
     if len(args)!=1:
@@ -78,7 +77,7 @@ if __name__=="__main__":
         outfname = "%s_jm%s" % (root,ext)
 
     if params[0]==1:
-        write(params, noise_reduction(signal,params,options.winsize,window,ss))
+        write(params, noise_reduction(signal,params,options.winsize,window,ss,options.ntime))
     elif params[0]==2:
         l,r = separate_channels(signal)
-        write(params, uniting_channles(noise_reduction(l,params,options.winsize,window,ss),noise_reduction(r,params,options.winsize,window,ss)))
+        write(params, uniting_channles(noise_reduction(l,params,options.winsize,window,ss,options.ntime),noise_reduction(r,params,options.winsize,window,ss,options.ntime)))
