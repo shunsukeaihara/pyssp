@@ -12,6 +12,7 @@ import optparse
 def noise_reduction(signal,params,winsize,window,ss,ntime):
     out=sp.zeros(len(signal),sp.float32)
     n_pow = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/(1000.0/ntime))],winsize,window)#maybe 300ms
+    nf = len(signal)/(winsize/2) - 1
     for no in xrange(nf):
         s = get_frame(signal, winsize, no)
         add_signal(out, ss.compute_by_noise_pow(s,n_pow), winsize, no)
@@ -58,7 +59,6 @@ if __name__=="__main__":
     fname = args[0]
     signal, params = read(fname,options.winsize)
 
-    nf = len(signal)/(options.winsize/2) - 1
     window = sp.hanning(options.winsize)
     import os.path
     
