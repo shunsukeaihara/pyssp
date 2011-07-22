@@ -71,7 +71,7 @@ if __name__ == "__main__":
     parser = optparse.OptionParser(usage="%python vad [-t THREASHOLD] [-w WINSIZE] INPUTFILE \n if INPUTFILE is \"-\", read wave data from stdin")
 
     parser.add_option("-w", type="int", dest="winsize", default=WINSIZE)
-    parser.add_option("-t", type="int", dest="th", default=15)
+    parser.add_option("-t", type="int", dest="th", default=30)
 
     (options, args) = parser.parse_args()
     windowsize = options.winsize

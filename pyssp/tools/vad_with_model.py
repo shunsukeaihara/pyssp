@@ -23,7 +23,7 @@ def write(param,signal):
     st = tempfile.TemporaryFile()
     wf=wave.open(st,'wb')
     wf.setparams(params)
-    s=sp.int16(signal).tostring()
+    s=sp.int16(signal*32767.0).tostring()
     wf.writeframes(s)
     st.seek(0)
     print st.read()
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     python vad.py -w WINSIZE -t THREATHOLD FILENAME
     """
     parser = optparse.OptionParser(usage="%python vad INPUTFILE \n if INPUTFILE is \"-\", read wave data from stdin")
-
+    parser.add_option("-t", type="int", dest="th", default=10)
     (options, args) = parser.parse_args()
     windowsize = 1024
 
@@ -87,6 +87,7 @@ if __name__ == "__main__":
         res,ltsds =  ltsd.compute_with_noise(signal,signal[0:windowsize*int(params[2] /float(windowsize)/3.0)])#maybe 300ms
         #print res
         res = hmm_filter(mhmm,nhmm,signal,res,windowsize,window)
+        #print res
         write(params,vad(res,signal,windowsize,window))
     elif params[0]==2:
         write(params,signal)
