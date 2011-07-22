@@ -106,6 +106,9 @@ class MinimumStatistics():
         self._alpha_max = 0.96
         self._beta_max  = 0.8
 
+        qeqmax = 14.0 # max value of Qeq per frame
+        self._qeqimin = 1/qeqmax
+
         self._clear_max = 65535*65535
         self._actmin_lambda = sp.ones(self._winsize)
         self._actmin_lambda = self._actmin_lambda*self._clear_max
@@ -150,9 +153,7 @@ class MinimumStatistics():
         #eq22
         vP_lambda = self._eP2_lambda-(self._eP_lambda**2)
         #eq23 modification
-        qeqmax = 14.0 # max value of Qeq per frame
-        qeqimin = 1/qeqmax
-        Qeq_lambda_inverse = sp.maximum(sp.minimum(vP_lambda/(2*(self._sn2_lambda**2)),0.5),qeqimin/(lamda+1))
+        Qeq_lambda_inverse = sp.maximum(sp.minimum(vP_lambda/(2*(self._sn2_lambda**2)),0.5),self._qeqimin/(lamda+1))
         
         #eq23 + 12 lines
         eQ_lambda = sp.sum(Qeq_lambda_inverse)/self._winsize
