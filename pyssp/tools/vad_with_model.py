@@ -15,7 +15,7 @@ WINSIZE = 1024
 def vad(vas,signal,winsize,window):
     out=sp.zeros(len(signal),sp.float32)
     for va in vas:
-        for i in range(va[0],va[1]+2):
+        for i in range(va[0],va[1]+5):
             add_signal(out,get_frame(signal, winsize, i)*window,winsize,i)
     return out
 
@@ -37,8 +37,8 @@ def read(fname,winsize):
                    wf.getframerate(), wf.getnframes(),
                    wf.getcomptype(), wf.getcompname()))
         siglen=((int )(len(str)/2/winsize) + 1) * winsize
-        signal=sp.zeros(siglen, sp.int16)
-        signal[0:len(str)/2] = sp.fromstring(str,sp.int16)
+        signal=sp.zeros(siglen, sp.float32)
+        signal[0:len(str)/2] =  sp.float32(sp.fromstring(str,sp.int16))/32767.0
         return signal,params
     else:
         return read_signal(fname,winsize)
@@ -61,8 +61,8 @@ def hmm_filter(mhmm,nhmm,signal,vas,winsize,window):
             s = get_frame(signal,winsize,i)
             s_spec = sp.fft(s*window)
             ls.append(sp.absolute(s_spec))
-        #print mhmm.score(ls)
-        #print nhmm.score(ls)
+        print mhmm.score(ls)
+        print nhmm.score(ls)
         if mhmm.score(ls) > nhmm.score(ls):
             ret.append(va)
     return ret
@@ -83,11 +83,11 @@ if __name__ == "__main__":
     mhmm,nhmm = get_model("hmm.model","noisyhmm.model")
 
     if params[0]==1:
-        ltsd = LTSD(windowsize,window,5,lambda0=options.th)
+        ltsd = LTSD(windowsize,window,6,lambda0=options.th)
         res,ltsds =  ltsd.compute_with_noise(signal,signal[0:windowsize*int(params[2] /float(windowsize)/3.0)])#maybe 300ms
-        #print res
+        print res
         res = hmm_filter(mhmm,nhmm,signal,res,windowsize,window)
-        #print res
-        write(params,vad(res,signal,windowsize,window))
+        print res
+        #write(params,vad(res,signal,windowsize,window))
     elif params[0]==2:
         write(params,signal)
