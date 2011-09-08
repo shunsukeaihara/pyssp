@@ -272,7 +272,8 @@ if __name__=="__main__":
     samplingrate = 16000
     chunk=1024
     soundfile='tools/sound/F2AKFU.SD.E03.16k.2.wav'
-    noisefile='tools/sound/air_vent.16k.hop.wav'
+    soundfile='tools/sound/b01.wav'
+    noisefile='tools/sound/air_vent.16k.wav'
     sound = wave.open(soundfile,'rb')
     noise = wave.open(noisefile,'rb')
     

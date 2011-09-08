@@ -47,9 +47,13 @@ def read(fname,winsize):
 if __name__=="__main__":
     parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] [- s NOISETIME(ms)] INPUTFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
 
-    parser.add_option("-w", type="int", dest="winsize", default=1024)
+    parser.add_option("-w", type="int", dest="winsize", default=512)
     parser.add_option("-m", type="int", dest="method", default=0)
-    parser.add_option("-s", type="int", dest="ntime", default=300)
+    parser.add_option("-t", type="int", dest="ntime", default=300)
+    parser.add_option("-s", type="float", dest="sscoefficient", default=4.0)
+    parser.add_option("-r", type="float", dest="ratio", default=1.0)
+    parser.add_option("-c", type="float", dest="constant", default=0.0001)
+    parser.add_option("-a", type="float", dest="alpha", default=0.99)
     (options, args) = parser.parse_args()
 
     if len(args)!=1:
@@ -64,16 +68,16 @@ if __name__=="__main__":
     
     root,ext = os.path.splitext(args[0])
     if options.method==0:
-        ss = SupectralSubtruction(options.winsize,window)
+        ss = SupectralSubtruction(options.winsize,window,ratio=options.ratio,coefficient=options.sscoefficient)
         outfname = "%s_ss%s" % (root,ext)
     elif options.method==1:
-        ss = MMSE_STSA(options.winsize,window)
+        ss = MMSE_STSA(options.winsize,window,ratio=options.ratio,constant=options.constant,alpha=options.alpha)
         outfname = "%s_mmse%s" % (root,ext)
     elif options.method==2:
-        ss = MMSE_LogSTSA(options.winsize,window,alpha=0.99)
+        ss = MMSE_LogSTSA(options.winsize,window,ratio=options.ratio,alpha=options.alpha,constant=options.constant)
         outfname = "%s_lmmse%s" % (root,ext)
     elif options.method==3:
-        ss = JointMap(options.winsize,window,alpha=0.99)
+        ss = JointMap(options.winsize,window,alpha=options.alpha,ratio=options.ratio,constant=options.constant)
         outfname = "%s_jm%s" % (root,ext)
 
     if params[0]==1:

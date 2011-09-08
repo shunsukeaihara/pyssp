@@ -71,3 +71,7 @@ def compute_avgpowerspectrum(signal,winsize,window):
     for l in xrange(windownum):
         avgpow += sp.absolute(sp.fft(get_frame(signal, winsize,l) * window))**2.0
     return avgpow/float(windownum)
+
+def sigmoid(x, x0, k, a):
+    y = k * 1 / (1 + np.exp(-a*(x-x0)))
+    return y
