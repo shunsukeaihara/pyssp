@@ -144,6 +144,7 @@ if __name__ == "__main__":
     
     ltsd = LTSD(WINSIZE,window,5)
     res,ltsds =  ltsd.compute_without_noise(signal,WINSIZE*int(params[2] /float(WINSIZE)/3.0))
+    print ltsds
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)

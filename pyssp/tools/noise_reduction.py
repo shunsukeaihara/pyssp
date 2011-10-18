@@ -52,7 +52,7 @@ if __name__=="__main__":
     parser.add_option("-t", type="int", dest="ntime", default=300)
     parser.add_option("-s", type="float", dest="sscoefficient", default=4.0)
     parser.add_option("-r", type="float", dest="ratio", default=1.0)
-    parser.add_option("-c", type="float", dest="constant", default=0.0001)
+    parser.add_option("-c", type="float", dest="constant", default=0.5)
     parser.add_option("-a", type="float", dest="alpha", default=0.99)
     (options, args) = parser.parse_args()
 

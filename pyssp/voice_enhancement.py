@@ -27,7 +27,7 @@ class SupectralSubtruction():
         return sp.real(sp.ifft(spec))
     
 class SpectrumReconstruction(object):
-    def __init__(self,winsize,window,constant=0.0001,ratio=1.0,alpha=0.99):
+    def __init__(self,winsize,window,constant=0.5,ratio=1.0,alpha=0.99):
         self._window=window
         self._G = sp.zeros(winsize,sp.float32)
         self._prevGamma = sp.zeros(winsize,sp.float32)
@@ -84,7 +84,7 @@ class MMSE_STSA(SpectrumReconstruction):
 
 
 class MMSE_LogSTSA(SpectrumReconstruction):
-    def __init__(self,winsize,window,constant=0.0001,ratio=1.0,alpha=0.99):
+    def __init__(self,winsize,window,constant=0.5,ratio=1.0,alpha=0.99):
         self._gamma15=spc.gamma(1.5)
         super(self.__class__,self).__init__(winsize,window,constant=constant,ratio=ratio,alpha=alpha)
 
@@ -113,7 +113,7 @@ class MMSE_LogSTSA(SpectrumReconstruction):
         return sp.real(sp.ifft(spec))
 
 class JointMap(SpectrumReconstruction):
-    def __init__(self,winsize,window,constant=0.0001,ratio=1.0,alpha=0.99,mu=1.74,tau=0.126):
+    def __init__(self,winsize,window,constant=0.5,ratio=1.0,alpha=0.99,mu=1.74,tau=0.126):
         self._mu = mu
         self._tau = tau
         super(self.__class__,self).__init__(winsize,window,constant=constant,ratio=ratio,alpha=alpha)
