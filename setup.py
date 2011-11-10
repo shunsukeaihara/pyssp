@@ -1,6 +1,6 @@
 import os
 from setuptools import setup,find_packages
-version="0.1.6.1"
+version="0.1.6.2"
 README = os.path.join(os.path.dirname(__file__),"README")
 long_description = open(README).read() + '\n\n'
 setup(name="pyssp",
