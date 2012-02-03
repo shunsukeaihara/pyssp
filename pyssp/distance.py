@@ -11,7 +11,7 @@ def itakura_saito_spectrum_distance(s,shat,winfunc):
     shat = shat[0:size]
     s_amp = sp.absolute(sp.fft(s*window))
     shat_amp = sp.absolute(sp.fft(shat*window))
-    return sp.mean(s_amp / shat_amp - sp.log10(s_amp / shat_amp) - 1.0)
+    return sp.mean(sp.log(s_amp / shat_amp) + (shat_amp/s_amp) - 1.0)
 
 
 def segmental_itakura_saito_spectrum_distance(s,shat,winsize,winfunc):
