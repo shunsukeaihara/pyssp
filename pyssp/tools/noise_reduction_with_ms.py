@@ -5,7 +5,7 @@ import sys
 import wave
 import tempfile
 from pyssp.util import read_signal,get_frame,add_signal,separate_channels,uniting_channles,compute_avgpowerspectrum
-from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
+from pyssp.voice_enhancement import SpectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 from pyssp.noise_estimation import MinimumStatistics
 import optparse
 
@@ -69,10 +69,10 @@ if __name__=="__main__":
 
     window = sp.hanning(options.winsize)
     import os.path
-    
+
     root,ext = os.path.splitext(args[0])
     if options.method==0:
-        ss = SupectralSubtruction(options.winsize,window)
+        ss = SpectralSubtruction(options.winsize,window)
         outfname = "%s_ss%s" % (root,ext)
     elif options.method==1:
         ss = MMSE_STSA(options.winsize,window)

@@ -4,17 +4,17 @@ import scipy as sp
 import scipy.special as spc
 from util import sigmoid
 
-class SupectralSubtruction():
+class SpectralSubtruction():
     def __init__(self,winsize,window,coefficient=5.0,ratio=1.0):
         self._window=window
         self._coefficient=coefficient
         self._ratio=ratio
-            
+
     def compute(self,signal,noise):
         n_spec = sp.fft(noise*self._window)
         n_pow = sp.absolute(n_spec)**2.0
         return self.compute_by_noise_pow(signal,n_pow)
-        
+
     def compute_by_noise_pow(self,signal,n_pow):
         s_spec = sp.fft(signal*self._window)
         s_amp = sp.absolute(s_spec)
@@ -25,7 +25,7 @@ class SupectralSubtruction():
         amp = self._ratio*amp + (1.0-self._ratio)*s_amp
         spec = amp * sp.exp(s_phase*1j)
         return sp.real(sp.ifft(spec))
-    
+
 class SpectrumReconstruction(object):
     def __init__(self,winsize,window,constant=0.001,ratio=1.0,alpha=0.99):
         self._window=window
@@ -117,7 +117,7 @@ class JointMap(SpectrumReconstruction):
         self._mu = mu
         self._tau = tau
         super(self.__class__,self).__init__(winsize,window,constant=constant,ratio=ratio,alpha=alpha)
-            
+
     def compute_by_noise_pow(self,signal,n_pow):
         s_spec = sp.fft(signal *self._window)
         s_amp = sp.absolute(s_spec)

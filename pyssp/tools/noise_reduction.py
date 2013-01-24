@@ -5,7 +5,7 @@ import sys
 import wave
 import tempfile
 from pyssp.util import read_signal,get_frame,add_signal,separate_channels,uniting_channles,compute_avgpowerspectrum
-from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
+from pyssp.voice_enhancement import SpectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 import optparse
 
 
@@ -45,7 +45,7 @@ def read(fname,winsize):
 
 
 if __name__=="__main__":
-    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] [- s NOISETIME(ms)] INPUTFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
+    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] [- s NOISETIME(ms)] INPUTFILE\n method 0 : SpectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
 
     parser.add_option("-w", type="int", dest="winsize", default=512)
     parser.add_option("-m", type="int", dest="method", default=0)
@@ -68,7 +68,7 @@ if __name__=="__main__":
     
     root,ext = os.path.splitext(args[0])
     if options.method==0:
-        ss = SupectralSubtruction(options.winsize,window,ratio=options.ratio,coefficient=options.sscoefficient)
+        ss = SpectralSubtruction(options.winsize,window,ratio=options.ratio,coefficient=options.sscoefficient)
         outfname = "%s_ss%s" % (root,ext)
     elif options.method==1:
         ss = MMSE_STSA(options.winsize,window,ratio=options.ratio,constant=options.constant,alpha=options.alpha)

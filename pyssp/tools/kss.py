@@ -3,7 +3,7 @@
 import scipy as sp
 import math
 from pyssp.util import read_signal, get_frame,separate_channels,add_signal,uniting_channles
-from pyssp.voice_enhancement import SupectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
+from pyssp.voice_enhancement import SpectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 import optparse
 import tempfile
 import wave
@@ -35,7 +35,7 @@ class KaraokeFileLoader():
         ssignal=reshape(ssignal[sindex:sindex+length],length,self._winsize)
         ksignal=reshape(ksignal[kindex:kindex+length],length,self._winsize)
         return ssignal,ksignal
-        
+
     def _alignment(self,ssignal,ksignal):
         starta = 0
         for i in range(len(ssignal))[0::2]:
@@ -108,7 +108,7 @@ def write(param,signal):
 
 
 if __name__ == "__main__":
-    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] SONGFILE KARAOKEFILE\n method 0 : SupectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
+    parser = optparse.OptionParser(usage="%prog [-m METHOD] [-w WINSIZE] SONGFILE KARAOKEFILE\n method 0 : SpectralSubtruction\n        1 : MMSE_STSA\n        2 : MMSE_LogSTSA\n        3 : JointMap\n if INPUTFILE is \"-\", read wave data from stdin")
 
     parser.add_option("-w", type="int", dest="winsize", default=1024)
     parser.add_option("-m", type="int", dest="method", default=0)
@@ -119,7 +119,6 @@ if __name__ == "__main__":
         parser.print_help()
         exit(2)
 
-    
     kl = KaraokeFileLoader(options.winsize*2)
 
     ssignal,ksignal,params = kl.load_file(args[0],args[1])
@@ -129,7 +128,7 @@ if __name__ == "__main__":
     window = sp.hanning(options.winsize)
 
     if options.method==0:
-        method = SupectralSubtruction(options.winsize,window)
+        method = SpectralSubtruction(options.winsize,window)
     elif options.method==1:
         method = MMSE_STSA(options.winsize,window)
     elif options.method==2:
@@ -146,5 +145,3 @@ if __name__ == "__main__":
 
     result = uniting_channles(sig_out_l, sig_out_r)
     write(params, result)
-    
-    
