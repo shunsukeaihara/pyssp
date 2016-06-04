@@ -2,120 +2,122 @@
 # -*- coding: utf-8 -*-
 import wave
 import scipy as sp
-from util import read_signal,get_frame,add_signal,write_signal,compute_avgpowerspectrum
+from util import read_signal, get_frame, add_signal, write_signal, compute_avgpowerspectrum
 from pyssp.voice_enhancement import JointMap
+
 
 # compute smoothing parameter
 def M_H(D):
     if(D == 1):
-        M=0
-        H=0
+        M = 0
+        H = 0
     elif(D == 2):
-        M=0.26
-        H=0.15
+        M = 0.26
+        H = 0.15
     elif(D == 4):
-        #nodata
-        M=0.40
-        H=0.30
+        # nodata
+        M = 0.40
+        H = 0.30
     elif(D == 5):
-        M=0.48
-        H=0.48
+        M = 0.48
+        H = 0.48
     elif(D == 6):
         # nodata
         M = 0.50
         H = 0.65
     elif(D == 8):
-        M=0.58
-        H=0.78
+        M = 0.58
+        H = 0.78
     elif(D == 10):
-        M=0.61
-        H=0.98
+        M = 0.61
+        H = 0.98
     elif(D == 12):
-        M=0.64
-        H=1.25
+        M = 0.64
+        H = 1.25
     elif(D == 15):
-        M=0.668
-        H=1.55
+        M = 0.668
+        H = 1.55
     elif(D == 18):
-        #nodata
-        M=0.68
-        H=1.7
+        # nodata
+        M = 0.68
+        H = 1.7
     elif(D == 20):
-        M=0.705
-        H=2.0
+        M = 0.705
+        H = 2.0
     elif(D == 24):
-        #no data
-        M=0.730
-        H=2.15
+        # no data
+        M = 0.730
+        H = 2.15
     elif(D == 30):
-        M=0.762
-        H=2.3
+        M = 0.762
+        H = 2.3
     elif(D == 40):
-        M=0.8
-        H=2.52
+        M = 0.8
+        H = 2.52
     elif(D == 60):
-        M=0.841
-        H=2.52
+        M = 0.841
+        H = 2.52
     elif(D == 80):
-        M=0.865
-        H=3.25
+        M = 0.865
+        H = 3.25
     elif(D == 96):
         M = 0.87
         H = 3.5
     elif(D == 120):
-        M=0.89
-        H=4.0
+        M = 0.89
+        H = 4.0
     elif(D == 140):
-        M=0.9
-        H=4.1
+        M = 0.9
+        H = 4.1
     elif(D == 160):
-        M=0.91
-        H=4.1
+        M = 0.91
+        H = 4.1
     elif(D == 192):
-        #nodata
-        M=0.92
-        H=4.2
+        # nodata
+        M = 0.92
+        H = 4.2
     else:
-        M=-1
-        H=-1
-        print "D value:",D
+        M = -1
+        H = -1
+        print("D value:", D)
         raise ValueError('D out of range')
-    return M,H
+    return M, H
+
 
 class MinimumStatistics():
 
-    def __init__(self,winsize,window,samp_rate):
+    def __init__(self, winsize, window, samp_rate):
         self._window = window
         self._winsize = winsize
 
-        #initial values
-        frametime = (self._winsize/2.0)/samp_rate; # frame incremental time [sec]
-        self._snrexp = (-1.0)*frametime/0.064
+        # initial values
+        frametime = (self._winsize / 2.0) / samp_rate  # frame incremental time [sec]
+        self._snrexp = (-1.0) * frametime / 0.064
         self._av = 2.12
 
         self._alpha_c_lambda = 0.7
-        #U subwindows
+        # U subwindows
         self._U = 8
-        #V samples
+        # V samples
         self._V = 12
-        #D window (96 samples)
-        self._D = self._U*self._V
-        self._subwc = self._V-1
-        self._ibuf  = 0
+        # D window (96 samples)
+        self._D = self._U * self._V
+        self._subwc = self._V - 1
+        self._ibuf = 0
         self._lmin_flag_lambda = sp.zeros(self._winsize)
         self._alpha_max = 0.96
-        self._beta_max  = 0.8
+        self._beta_max = 0.8
 
-        qeqmax = 14.0 # max value of Qeq per frame
-        self._qeqimin = 1/qeqmax
+        qeqmax = 14.0  # max value of Qeq per frame
+        self._qeqimin = 1 / qeqmax
 
-        self._clear_max = 65535*65535
+        self._clear_max = 65535 * 65535
         self._actmin_lambda = sp.ones(self._winsize)
-        self._actmin_lambda = self._actmin_lambda*self._clear_max
+        self._actmin_lambda = self._actmin_lambda * self._clear_max
         self._actmin_lambda_sub = self._actmin_lambda
-        self._Pmin_u_lambda     = self._actmin_lambda
-        self._actbuf = sp.ones((self._U,self._winsize))
-        self._actbuf = self._actbuf*self._clear_max
+        self._Pmin_u_lambda = self._actmin_lambda
+        self._actbuf = sp.ones((self._U, self._winsize))
+        self._actbuf = self._actbuf * self._clear_max
 
         # for graph
         self._x_data = []
@@ -126,49 +128,50 @@ class MinimumStatistics():
         self._p_data_all = []
         pass
 
-    def init_noise_profile(self,NP_lambda):
+    def init_noise_profile(self, NP_lambda):
         self._P_lambda = NP_lambda
         self._sn2_lambda = self._P_lambda
-        self._eP_lambda  = self._P_lambda
-        self._eP2_lambda = self._eP_lambda**2
+        self._eP_lambda = self._P_lambda
+        self._eP2_lambda = self._eP_lambda ** 2
         self._Pmin_u_lambda = self._P_lambda
 
-    def compute(self,frame,lamda):
-        Y_lambda = sp.fft(frame*self._window)
-        #eq9
-        alpha_c_lambda_tilde = 1.0 / ( 1.0 + ( sp.sum(self._P_lambda)/ sp.sum(sp.absolute(Y_lambda)**2) - 1.0 )**2 )
-        #eq10
-        self._alpha_c_lambda = 0.7*self._alpha_c_lambda + 0.3*sp.maximum(alpha_c_lambda_tilde, 0.7)
-        #eq11
-        alpha_lambda_hat = (self._alpha_max*self._alpha_c_lambda) / ( 1 + (self._P_lambda/self._sn2_lambda - 1)**2 )
-        #eq12
-        snr = sp.sum(self._P_lambda)/sp.sum(self._sn2_lambda)
-        alpha_lambda_hat = sp.maximum(alpha_lambda_hat, sp.minimum(0.3, snr**self._snrexp))
-        #eq4 smoothed periodgram
-        self._P_lambda = alpha_lambda_hat*self._P_lambda + (1.0-alpha_lambda_hat)*(sp.absolute(Y_lambda)**2)
-        #eq20
-        beta_lambda = sp.minimum(alpha_lambda_hat**2, self._beta_max)
-        self._eP_lambda = beta_lambda*self._eP_lambda + (1.0-beta_lambda)*self._P_lambda;
-        self._eP2_lambda = beta_lambda*self._eP2_lambda + (1.0-beta_lambda)*(self._P_lambda**2)
-        #eq22
-        vP_lambda = self._eP2_lambda-(self._eP_lambda**2)
-        #eq23 modification
-        Qeq_lambda_inverse = sp.maximum(sp.minimum(vP_lambda/(2*(self._sn2_lambda**2)),0.5),self._qeqimin/(lamda+1))
+    def compute(self, frame, lamda):
+        Y_lambda = sp.fft(frame * self._window)
+        # eq9
+        alpha_c_lambda_tilde = 1.0 / (1.0 + (sp.sum(self._P_lambda) / sp.sum(sp.absolute(Y_lambda) ** 2) - 1.0) ** 2)
+        # eq10
+        self._alpha_c_lambda = 0.7 * self._alpha_c_lambda + 0.3 * sp.maximum(alpha_c_lambda_tilde, 0.7)
+        # eq11
+        alpha_lambda_hat = (self._alpha_max * self._alpha_c_lambda) / (1 + (self._P_lambda / self._sn2_lambda - 1) ** 2)
+        # eq12
+        snr = sp.sum(self._P_lambda) / sp.sum(self._sn2_lambda)
+        alpha_lambda_hat = sp.maximum(alpha_lambda_hat, sp.minimum(0.3, snr ** self._snrexp))
+        # eq4 smoothed periodgram
+        self._P_lambda = alpha_lambda_hat * self._P_lambda + (1.0 - alpha_lambda_hat) * (sp.absolute(Y_lambda) ** 2)
+        # eq20
+        beta_lambda = sp.minimum(alpha_lambda_hat ** 2, self._beta_max)
+        self._eP_lambda = beta_lambda * self._eP_lambda + (1.0 - beta_lambda) * self._P_lambda
+        self._eP2_lambda = beta_lambda * self._eP2_lambda + (1.0 - beta_lambda) * (self._P_lambda ** 2)
+        # eq22
+        vP_lambda = self._eP2_lambda - (self._eP_lambda ** 2)
+        # eq23 modification
+        Qeq_lambda_inverse = sp.maximum(sp.minimum(vP_lambda / (2 * (self._sn2_lambda ** 2)), 0.5),
+                                        self._qeqimin / (lamda + 1))
 
-        #eq23 + 12 lines
-        eQ_lambda = sp.sum(Qeq_lambda_inverse)/self._winsize
-        #eq23 + 11 lines
-        Bc_lambda = 1.0 + self._av*sp.sqrt(eQ_lambda)
+        # eq23 + 12 lines
+        eQ_lambda = sp.sum(Qeq_lambda_inverse) / self._winsize
+        # eq23 + 11 lines
+        Bc_lambda = 1.0 + self._av * sp.sqrt(eQ_lambda)
 
         # ----------------------------------------------------------------------------------------
         # for overall window of length D
         # ----------------------------------------------------------------------------------------
 
-        #eq16
-        M,H = M_H(self._D)
-        Qeq_lambda_tilde = (1.0/Qeq_lambda_inverse - 2*M)/(1-M)
-        #eq17
-        Bmin_lambda = 1.0 + (self._D-1)*2.0/Qeq_lambda_tilde
+        # eq16
+        M, H = M_H(self._D)
+        Qeq_lambda_tilde = (1.0 / Qeq_lambda_inverse - 2 * M) / (1 - M)
+        # eq17
+        Bmin_lambda = 1.0 + (self._D - 1) * 2.0 / Qeq_lambda_tilde
 
         # ----------------------------------------------------------------------------------------
         # for subwindow U of length V
