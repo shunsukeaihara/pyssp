@@ -12,7 +12,7 @@ def calc_hypotes(pa, pp, beta=1.0):
 
 
 class PAR:
-    def __ini__(self, winsize, window, alpha=1.0, beta=1.0):
+    def __init__(self, winsize, window, alpha=1.0, beta=1.0):
         self._winsize = winsize
         self._window = window
         self._alpha = alpha
