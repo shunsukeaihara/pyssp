@@ -25,6 +25,7 @@ class PAR:
         smax = -np.inf
         lenmax = 0
         for i in range(2, int(self._winsize / 10)):
+            # searching f0 with maximizing estimated power of periodic component
             idx = list(range(i, int(self._winsize / 2), i + 1))
             score = power[:int(self._winsize / 2)][idx].sum() - (len(idx) * avg_pow)
             if score > smax:
@@ -32,6 +33,6 @@ class PAR:
                 lenmax = len(idx)
         pp = (smax / (1.0 - self._eta * lenmax)) * self._eta
         pa = avg_pow - pp
-        return calc_hypotes(pa, pp, self._beta) / calc_nullhypotes(pa, pp, self._alpha)
+        return calc_hypotes(pa, pp, beta=self._beta) / calc_nullhypotes(pa, pp, alpha=self._alpha)
 
     
