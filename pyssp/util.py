@@ -16,21 +16,21 @@ def read_signal(filename, winsize):
                wf.getframerate(), wf.getnframes(),
                wf.getcomptype(), wf.getcompname()))
     siglen = ((int)(len(st) / 2 / winsize) + 1) * winsize
-    signal = sp.zeros(siglen, sp.float32)
-    signal[0:len(st) / 2] = sp.float32(sp.fromstring(str, sp.int16)) / 32767.0
+    signal = np.zeros(siglen, np.float32)
+    signal[0:int(len(st) / 2)] = np.float32(np.fromstring(st, np.int16)) / 32767.0
     return [signal, params]
 
 
 def get_frame(signal, winsize, no):
-    shift = winsize / 2
-    start = no * shift
+    shift = int(winsize / 2)
+    start = int(no * shift)
     end = start + winsize
     return signal[start:end]
 
 
 def add_signal(signal, frame, winsize, no):
-    shift = winsize / 2
-    start = no * shift
+    shift = int(winsize / 2)
+    start = int(no * shift)
     end = start + winsize
     signal[start:end] = signal[start:end] + frame
 
@@ -38,13 +38,13 @@ def add_signal(signal, frame, winsize, no):
 def write_signal(filename, params, signal):
     wf = wave.open(filename, 'wb')
     wf.setparams(params)
-    s = sp.int16(signal * 32767.0).tostring()
+    s = np.int16(signal * 32767.0).tostring()
     wf.writeframes(s)
 
 
 def get_window(winsize, no):
-    shift = winsize / 2
-    s = no * shift
+    shift = int(winsize / 2)
+    s = int(no * shift)
     return (s, s + winsize)
 
 
@@ -57,22 +57,22 @@ def uniting_channles(leftsignal, rightsignal):
     for i, j in zip(leftsignal, rightsignal):
         ret.append(i)
         ret.append(j)
-    return np.array(ret, sp.float32)
+    return np.array(ret, np.float32)
 
 
 def compute_avgamplitude(signal, winsize, window):
-    windownum = len(signal) / (winsize / 2) - 1
-    avgamp = sp.zeros(winsize)
+    windownum = int(len(signal) / (winsize / 2)) - 1
+    avgamp = np.zeros(winsize)
     for l in xrange(windownum):
-        avgamp += sp.absolute(sp.fft(get_frame(signal, winsize, l) * window))
+        avgamp += np.absolute(sp.fft(get_frame(signal, winsize, l) * window))
     return avgamp / float(windownum)
 
 
 def compute_avgpowerspectrum(signal, winsize, window):
-    windownum = len(signal) / (winsize / 2) - 1
-    avgpow = sp.zeros(winsize)
+    windownum = int(len(signal) / (winsize / 2)) - 1
+    avgpow = np.zeros(winsize)
     for l in xrange(windownum):
-        avgpow += sp.absolute(sp.fft(get_frame(signal, winsize, l) * window))**2.0
+        avgpow += np.absolute(sp.fft(get_frame(signal, winsize, l) * window))**2.0
     return avgpow / float(windownum)
 
 
