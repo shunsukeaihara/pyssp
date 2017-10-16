@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from setuptools import setup, find_packages
-version = "0.1.9.3"
+version = "0.1.9.4"
 README = os.path.join(os.path.dirname(__file__), "README")
 long_description = open(README).read() + '\n\n'
 setup(name="pyssp",
@@ -13,7 +13,7 @@ setup(name="pyssp",
                    "Intended Audience :: Science/Research"],
       keywords='scipy, speech processing',
       author='Shunsuke Aihara',
-      author_email="s.aihara@gmail.com",
+      author_email="s.aihara@gmail.scom",
       url='https://github.com/shunsukeaihara/pyssp',
       license="The MIT License",
       packages=find_packages(),

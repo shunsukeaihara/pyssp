@@ -62,5 +62,4 @@ def lpr_kurtosis(frame, lpcorder=10):
     for i in xrange(frame.size - 10):
         residuals.append(frame[i + 10] - np.sum(frame[i:i + 10] * coef))
     residuals = np.array(residuals)
-    
     return calc_kurtosis(residuals)
