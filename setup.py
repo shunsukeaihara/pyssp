@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from setuptools import setup, find_packages
-version = "0.1.9.4"
+version = "0.1.9.5"
 README = os.path.join(os.path.dirname(__file__), "README")
 long_description = open(README).read() + '\n\n'
 setup(name="pyssp",

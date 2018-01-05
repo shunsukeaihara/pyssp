@@ -8,14 +8,14 @@ from pyssp.util import read_signal,get_frame,add_signal,separate_channels,unitin
 from pyssp.voice_enhancement import SpectralSubtruction,MMSE_STSA,JointMap,MMSE_LogSTSA
 from pyssp.noise_estimation import MinimumStatistics
 import optparse
-
+from six.moves import xrange
 
 def noise_reduction(signal,params,winsize,window,ss,ntime):
     out=sp.zeros(len(signal),sp.float32)
     ms = MinimumStatistics(winsize,window,params[2])
     NP_lambda = compute_avgpowerspectrum(signal[0:winsize*int(params[2] /float(winsize)/(1000.0/ntime))],winsize,window)#maybe 300ms
     ms.init_noise_profile(NP_lambda)
-    nf = len(signal)/(winsize/2) - 1
+    nf = int(len(signal)/(winsize/2)) - 1
     for no in xrange(nf):
         frame = get_frame(signal, winsize, no)
         n_pow = ms.compute(frame,no)
@@ -34,7 +34,7 @@ def write(param,signal):
     s=sp.int16(signal*32767.0).tostring()
     wf.writeframes(s)
     st.seek(0)
-    print st.read()
+    print(st.read())
 
 def read(fname,winsize):
     if fname =="-":

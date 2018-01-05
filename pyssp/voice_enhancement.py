@@ -63,7 +63,7 @@ class SpectrumReconstruction:
 class MMSE_STSA(SpectrumReconstruction):
     def __init__(self, winsize, window, constant=0.001, ratio=1.0, alpha=0.99):
         self._gamma15 = spc.gamma(1.5)
-        super(self.__class__, self).__init__(winsize, window, constant=constant, ratio=ratio, alpha=alpha)
+        super(MMSE_STSA, self).__init__(winsize, window, constant=constant, ratio=ratio, alpha=alpha)
 
     def compute_by_noise_pow(self, signal, n_pow):
         s_spec = np.fft.fftpack.fft(signal * self._window)
@@ -93,7 +93,7 @@ class MMSE_STSA(SpectrumReconstruction):
 class MMSE_LogSTSA(SpectrumReconstruction):
     def __init__(self, winsize, window, constant=0.001, ratio=1.0, alpha=0.99):
         self._gamma15 = spc.gamma(1.5)
-        super(self.__class__, self).__init__(winsize, window, constant=constant, ratio=ratio, alpha=alpha)
+        super(MMSE_LogSTSA, self).__init__(winsize, window, constant=constant, ratio=ratio, alpha=alpha)
 
     def compute_by_noise_pow(self, signal, n_pow):
         s_spec = np.fft.fftpack.fft(signal * self._window)
@@ -124,7 +124,7 @@ class JointMap(SpectrumReconstruction):
     def __init__(self, winsize, window, constant=0.001, ratio=1.0, alpha=0.99, mu=1.74, tau=0.126):
         self._mu = mu
         self._tau = tau
-        super(self.__class__, self).__init__(winsize, window, constant=constant, ratio=ratio, alpha=alpha)
+        super(JointMap, self).__init__(winsize, window, constant=constant, ratio=ratio, alpha=alpha)
 
     def compute_by_noise_pow(self, signal, n_pow):
         s_spec = np.fft.fftpack.fft(signal * self._window)
