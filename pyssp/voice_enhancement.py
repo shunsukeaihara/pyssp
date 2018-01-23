@@ -6,7 +6,7 @@ from pyssp.util import sigmoid
 from six.moves import xrange
 
 
-class SpectralSubtruction:
+class SpectralSubtruction(object):
     def __init__(self, winsize, window, coefficient=5.0, ratio=1.0):
         self._window = window
         self._coefficient = coefficient
@@ -29,7 +29,7 @@ class SpectralSubtruction:
         return np.real(np.fft.fftpack.ifft(spec))
 
 
-class SpectrumReconstruction:
+class SpectrumReconstruction(object):
     def __init__(self, winsize, window, constant=0.001, ratio=1.0, alpha=0.99):
         self._window = window
         self._G = np.zeros(winsize, np.float64)

@@ -9,6 +9,7 @@ from pyssp.voice_enhancement import SpectralSubtruction,MMSE_STSA,JointMap,MMSE_
 from pyssp.noise_estimation import MinimumStatistics
 import optparse
 from six.moves import xrange
+import six
 
 def noise_reduction(signal,params,winsize,window,ss,ntime):
     out=sp.zeros(len(signal),sp.float32)
@@ -34,7 +35,10 @@ def write(param,signal):
     s=sp.int16(signal*32767.0).tostring()
     wf.writeframes(s)
     st.seek(0)
-    print(st.read())
+    if six.PY2:
+        print(st.read())
+    else:
+        sys.stdout.buffer.write(st.read())
 
 def read(fname,winsize):
     if fname =="-":
